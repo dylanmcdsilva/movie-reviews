@@ -1,0 +1,285 @@
+body {
+
+  background-color: #121212;
+    color: #e0e0e0;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+
+nav {
+    text-align: center;
+    background-color: #1e1e1e;
+    padding: 15px;
+    border-bottom: 1px solid #333;
+}
+
+nav a {
+    display: inline-block;
+    margin: 0 10px;
+    padding: 10px 22px;
+
+    background-color: #2a2a2a;
+    color: #e0e0e0;
+
+    text-decoration: none;
+    border-radius: 8px;
+
+    transition: 0.3s;
+    border: 1px solid #444;
+}
+
+nav a:hover {
+    background-color: #1565c0;
+    color: white;
+    transform: translateY(-2px);
+}
+
+h1 , h2 {
+    text-align: center;
+     letter-spacing: 1px
+}
+
+
+.contentor-filmes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+    padding: 20px;
+    justify-content: space-around;
+}
+
+
+.filmes img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 5px;
+}
+
+.filmes:hover {
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3); /* sombra mais elegante */
+    transform: translateY(-6px); /* flutuação ligeiramente maior */
+}
+
+    .nav_music::before {
+
+        content: "♫ "
+    }
+
+    
+     .nav_politics::before {
+
+        content: "🏛️ "
+    }
+
+
+    .contentor-musicas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+    padding: 20px;
+    justify-content: space-around;
+}
+
+.musicas {
+    background-color: beige;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    width:400px;
+    height:750px;
+     transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.musicas img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 5px;
+}
+
+.musicas:hover {
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3); /* sombra mais elegante */
+    transform: translateY(-6px); /* flutuação ligeiramente maior */
+
+}
+    .contentor-politica {
+ display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+    padding: 20px;
+    justify-content: space-around;
+
+}
+
+.politica {
+    background-color: beige;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    width:400px;
+    height:300px;
+     transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.politica:hover {
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3); /* sombra mais elegante */
+    transform: translateY(-6px); /* flutuação ligeiramente maior */
+}
+
+.filmes {
+      position: relative;
+   background-color: #1e1e1e;
+    padding: 20px;
+     border-radius: 12px;
+ 
+ border: 1px solid #2a2a2a;
+color: #e0e0e0;
+   width: 100%;
+    max-width: 320px;
+    padding: 16px;
+    min-height: auto;
+
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+
+    overflow: hidden;
+     align-items: center
+    }
+
+.filmes.rating-10::before,
+.filmes.rating-9::before,
+.filmes.rating-8::before,
+.filmes.rating-7::before,
+.filmes.rating-low::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 6px;
+    width: 100%;
+}
+
+.filmes.rating-10::before { background: #2e7d32; }
+.filmes.rating-9::before  { background: #1565c0; }
+.filmes.rating-8::before  { background: #ffb300; }
+.filmes.rating-7::before  { background: #ef6c00; }
+.filmes.rating-low::before { background: #c62828; }
+
+
+.rating {
+    width: 45px;
+    height: 45px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    font-weight: bold;
+    font-size: 0.9rem;
+
+    background: #2a2a2a;
+    border: 2px solid;
+}
+
+.rating-10 .rating { border-color: #2e7d32; }
+.rating-9 .rating  { border-color: #1565c0; }
+.rating-8 .rating  { border-color: #ffb300; }
+.rating-7 .rating  { border-color: #ef6c00; }
+.rating-low .rating { border-color: #c62828; }
+
+
+
+#movieCount {
+    text-align: center;
+    margin: 15px;
+
+    font-size: 1rem;
+    font-weight: bold;
+
+    color: #e0e0e0;
+    background: #1e1e1e;
+
+    padding: 8px 14px;
+    border-radius: 8px;
+
+    border: 1px solid #333;
+
+    display: inline-block;
+}
+
+.filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+
+    background: #1a1a1a;
+    padding: 15px;
+    margin: 20px auto;
+    border-radius: 12px;
+
+    border: 1px solid #2a2a2a;
+    max-width: 900px;
+}
+
+/* Inputs + selects */
+.filters input,
+.filters select {
+    background: #121212;
+    color: #e0e0e0;
+
+    border: 1px solid #333;
+    border-radius: 8px;
+
+    padding: 10px 12px;
+    font-size: 0.9rem;
+
+    transition: 0.2s;
+}
+
+/* Focus effect */
+.filters input:focus,
+.filters select:focus {
+    outline: none;
+    border-color: #1565c0;
+    box-shadow: 0 0 5px rgba(21, 101, 192, 0.5);
+}
+
+/* Button */
+.filters button {
+    background: #1565c0;
+    color: white;
+
+    border: none;
+    border-radius: 8px;
+
+    padding: 10px 14px;
+    cursor: pointer;
+
+    transition: 0.2s;
+}
+
+.filters button:hover {
+    background: #0d47a1;
+    transform: translateY(-2px);
+}
+.awards {
+    font-size: 0.75rem;
+    opacity: 0.7;
+    text-align: center;
+    margin-top: 5px;
+}
+
+.oscar-winner::after {
+    content: "🏆";
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    font-size: 18px;
+}
