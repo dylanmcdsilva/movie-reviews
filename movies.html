@@ -724,6 +724,17 @@ movie.appendChild(awardsPara);
         });
     }
 
+function searchMovies(query) {
+    query = query.toLowerCase();
+
+    document.querySelectorAll('.filmes').forEach(movie => {
+        const title = movie.querySelector('h3').innerText.toLowerCase();
+
+        movie.style.display = title.includes(query) ? "flex" : "none";
+    });
+
+    updateMovieCount();
+}
     // 🚀 INIT
     window.addEventListener('DOMContentLoaded', () => {
         const select = document.getElementById('directorSelect');
