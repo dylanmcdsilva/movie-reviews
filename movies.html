@@ -712,6 +712,13 @@ function searchMovies(query) {
 
         // ✅ NOW SEARCHES TITLE + ACTORS
         const matchSearch = title.includes(query) || actors.includes(query);
+const matchRating = !ratingInput || rating >= ratingInput;
+const matchDirector = !director || directors.includes(director);
+
+movie.style.display =
+    (matchSearch && matchRating && matchDirector)
+        ? "flex"
+        : "none";
 
         const matchRating = !ratingInput || rating >= ratingInput;
         const matchDirector = !director || directors.includes(director);
