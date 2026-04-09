@@ -522,7 +522,7 @@ DNF
 
 <div class="filmes" data-imdb="tt0119217">
 
-<h3> Good Will Hunting (1996)</h3>
+<h3> Good Will Hunting (1997)</h3>
 <div class="rating" data-rating="8">8</div>
 <p class="director" data-director="gus van sant">
   Director: Gus Van Sant</p>
@@ -695,10 +695,23 @@ movie.appendChild(awardsPara);
 function searchMovies(query) {
     query = query.toLowerCase();
 
+    const ratingInput = document.getElementById('ratingInput').value;
+    const director = document.getElementById('directorSelect').value;
+
     document.querySelectorAll('.filmes').forEach(movie => {
         const title = movie.querySelector('h3').innerText.toLowerCase();
+        const rating = parseInt(movie.querySelector('.rating').dataset.rating) || 0;
 
-        movie.style.display = title.includes(query) ? "flex" : "none";
+        const directors = Array.from(movie.querySelectorAll('.director'))
+            .map(d => d.dataset.director);
+
+        const matchSearch = title.includes(query);
+        const matchRating = !ratingInput || rating >= ratingInput;
+        const matchDirector = !director || directors.includes(director);
+
+        movie.style.display = (matchSearch && matchRating && matchDirector)
+            ? "flex"
+            : "none";
     });
 
     updateMovieCount();
