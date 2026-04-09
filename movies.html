@@ -704,7 +704,7 @@ function searchMovies(query) {
 
     document.querySelectorAll('.filmes').forEach(movie => {
         const title = movie.querySelector('h3').innerText.toLowerCase();
-        const actors = movie.dataset.actors || ""; // ✅ NEW
+        const actors = (movie.dataset.actors || "").toLowerCase();
         const rating = parseInt(movie.querySelector('.rating').dataset.rating) || 0;
 
         const directors = Array.from(movie.querySelectorAll('.director'))
