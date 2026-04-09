@@ -720,12 +720,7 @@ movie.style.display =
         ? "flex"
         : "none";
 
-        const matchRating = !ratingInput || rating >= ratingInput;
-        const matchDirector = !director || directors.includes(director);
 
-        movie.style.display = (matchSearch && matchRating && matchDirector)
-            ? "flex"
-            : "none";
     });
 
     updateMovieCount();
