@@ -623,6 +623,10 @@ DNF
             try {
                 const res = await fetch(`https://www.omdbapi.com/?i=${imdbID}&apikey=${apiKey}`);
                 const data = await res.json();
+
+// ✅ STORE ACTORS (NEW)
+movie.dataset.actors = data.Actors ? data.Actors.toLowerCase() : "";
+
 // store awards for filtering
 movie.dataset.awards = data.Awards ? data.Awards.toLowerCase() : "";
 
@@ -700,12 +704,15 @@ function searchMovies(query) {
 
     document.querySelectorAll('.filmes').forEach(movie => {
         const title = movie.querySelector('h3').innerText.toLowerCase();
+        const actors = movie.dataset.actors || ""; // ✅ NEW
         const rating = parseInt(movie.querySelector('.rating').dataset.rating) || 0;
 
         const directors = Array.from(movie.querySelectorAll('.director'))
             .map(d => d.dataset.director);
 
-        const matchSearch = title.includes(query);
+        // ✅ NOW SEARCHES TITLE + ACTORS
+        const matchSearch = title.includes(query) || actors.includes(query);
+
         const matchRating = !ratingInput || rating >= ratingInput;
         const matchDirector = !director || directors.includes(director);
 
