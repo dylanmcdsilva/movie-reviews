@@ -293,3 +293,21 @@ color: #e0e0e0;
 .rating-row .sep {
     opacity: 0.5;
 }
+
+#dashboard {
+    padding: 20px;
+    background: #111;
+    color: white;
+}
+
+.charts {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 20px;
+}
+
+canvas {
+    background: white;
+    border-radius: 10px;
+    padding: 10px;
+}
