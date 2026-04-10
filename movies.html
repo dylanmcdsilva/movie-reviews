@@ -860,31 +860,33 @@ movie.style.display =
 }
 
 
-    // 🚀 INIT
-    window.addEventListener('DOMContentLoaded', () => {
-        const select = document.getElementById('directorSelect');
-        const directorCounts = {};
+    window.addEventListener('DOMContentLoaded', async () => {
+    const select = document.getElementById('directorSelect');
+    const directorCounts = {};
 
-        document.querySelectorAll('.filmes').forEach(movie => {
-            movie.querySelectorAll('.director').forEach(el => {
-                const d = el.dataset.director;
-                directorCounts[d] = (directorCounts[d] || 0) + 1;
-            });
+    document.querySelectorAll('.filmes').forEach(movie => {
+        movie.querySelectorAll('.director').forEach(el => {
+            const d = el.dataset.director;
+            directorCounts[d] = (directorCounts[d] || 0) + 1;
         });
-
-        Object.keys(directorCounts).sort().forEach(director => {
-            const option = document.createElement('option');
-            option.value = director;
-            option.textContent = director.replace(/\b\w/g, l => l.toUpperCase()) + ` (${directorCounts[director]})`;
-            select.appendChild(option);
-        });
-
-       
-        applyRatingColors();
-        addTMDbData();
-                updateAdvancedDashboard();
-        updateMovieCount(); // ✅ initial count
     });
+
+    Object.keys(directorCounts).sort().forEach(director => {
+        const option = document.createElement('option');
+        option.value = director;
+        option.textContent =
+            director.replace(/\b\w/g, l => l.toUpperCase()) +
+            ` (${directorCounts[director]})`;
+        select.appendChild(option);
+    });
+
+    applyRatingColors();
+
+    await addTMDbData();   // ⭐ wait for full data load
+
+    updateMovieCount();
+    updateAdvancedDashboard(); // ⭐ now safe
+});
 
 </script>
 
