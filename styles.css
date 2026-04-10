@@ -296,13 +296,13 @@ color: #e0e0e0;
 
 #dashboard {
     background-color: #121212;
-    padding: 20px;
+    padding: 30px 10px;
 }
 
 .charts {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
+    grid-template-columns: 1fr;
+    gap: 25px;
     padding: 20px;
     max-width: 1200px;
     margin: 0 auto;
@@ -315,12 +315,10 @@ color: #e0e0e0;
 
     padding: 12px;
 
-    box-shadow: 0 8px 20px rgba(0,0,0,0.5);
-
-    height: 300px !important;
+    height: 350px !important;   /* 👈 BIG CHANGE */
     width: 100% !important;
 
-    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.5);
 }
 
 .charts canvas:hover {
