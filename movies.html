@@ -770,7 +770,7 @@ movie.style.display =
     updateMovieCount();
     updateAdvancedDashboard();
 }
- function updateAdvancedDashboard() {
+function updateAdvancedDashboard() {
     const movies = document.querySelectorAll('.filmes');
 
     let ratingBuckets = {
@@ -778,7 +778,7 @@ movie.style.display =
         "9": 0,
         "8": 0,
         "7": 0,
-        "6-below": 0
+        "6-↓": 0
     };
 
     let genreCount = {};
@@ -789,35 +789,129 @@ movie.style.display =
 
         const rating = parseInt(movie.querySelector('.rating')?.dataset.rating) || 0;
 
-        // 📊 rating distribution
         if (rating === 10) ratingBuckets["10"]++;
         else if (rating === 9) ratingBuckets["9"]++;
         else if (rating === 8) ratingBuckets["8"]++;
         else if (rating === 7) ratingBuckets["7"]++;
-        else ratingBuckets["6-below"]++;
+        else ratingBuckets["6-↓"]++;
 
-        // 🎭 genres
+        // genres
         movie.querySelectorAll('p').forEach(p => {
             if (p.innerText.startsWith("🎭")) {
-                const genres = p.innerText.replace("🎭", "").split(",");
-                genres.forEach(g => {
-                    const cleaned = g.trim();
-                    genreCount[cleaned] = (genreCount[cleaned] || 0) + 1;
-                });
+                p.innerText
+                    .replace("🎭", "")
+                    .split(",")
+                    .forEach(g => {
+                        const clean = g.trim();
+                        if (clean) genreCount[clean] = (genreCount[clean] || 0) + 1;
+                    });
             }
         });
 
-        // 🎬 directors
+        // directors
         movie.querySelectorAll('.director').forEach(d => {
             const name = d.dataset.director;
             directorCount[name] = (directorCount[name] || 0) + 1;
         });
     });
 
-function safeDestroy(chart) {
-    if (chart && typeof chart.destroy === "function") {
-        chart.destroy();
-    }
+    // destroy safely
+    if (window.ratingChart?.destroy) window.ratingChart.destroy();
+    if (window.genreChart?.destroy) window.genreChart.destroy();
+    if (window.directorChart?.destroy) window.directorChart.destroy();
+
+    Chart.defaults.color = "#bdbdbd";
+    Chart.defaults.borderColor = "rgba(255,255,255,0.05)";
+
+    // =====================
+    // ⭐ RATING (modern bars)
+    // =====================
+    window.ratingChart = new Chart(document.getElementById('ratingChart'), {
+        type: 'bar',
+        data: {
+            labels: Object.keys(ratingBuckets),
+            datasets: [{
+                data: Object.values(ratingBuckets),
+                backgroundColor: "#1565c0",
+                borderRadius: 10,
+                barThickness: 35
+            }]
+        },
+        options: {
+            plugins: { legend: { display: false } },
+            scales: {
+                x: {
+                    grid: { display: false },
+                    ticks: { color: "#bdbdbd" }
+                },
+                y: {
+                    grid: { color: "rgba(255,255,255,0.05)" },
+                    ticks: { display: false },
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // =====================
+    // 🎭 GENRE (modern donut)
+    // =====================
+    window.genreChart = new Chart(document.getElementById('genreChart'), {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(genreCount),
+            datasets: [{
+                data: Object.values(genreCount),
+                backgroundColor: [
+                    "#1565c0", "#2e7d32", "#ffb300",
+                    "#ef6c00", "#c62828", "#6a1b9a"
+                ],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            cutout: "70%",
+            plugins: {
+                legend: {
+                    position: "bottom",
+                    labels: { color: "#bdbdbd" }
+                }
+            }
+        }
+    });
+
+    // =====================
+    // 🎬 DIRECTORS (top 5)
+    // =====================
+    const topDirectors = Object.entries(directorCount)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5);
+
+    window.directorChart = new Chart(document.getElementById('directorChart'), {
+        type: 'bar',
+        data: {
+            labels: topDirectors.map(d => d[0]),
+            datasets: [{
+                data: topDirectors.map(d => d[1]),
+                backgroundColor: "#1565c0",
+                borderRadius: 10
+            }]
+        },
+        options: {
+            plugins: { legend: { display: false } },
+            scales: {
+                x: {
+                    grid: { display: false },
+                    ticks: { color: "#bdbdbd" }
+                },
+                y: {
+                    grid: { color: "rgba(255,255,255,0.05)" },
+                    ticks: { display: false },
+                    beginAtZero: true
+                }
+            }
+        }
+    });
 }
 
 safeDestroy(window.ratingChart);
@@ -862,7 +956,6 @@ safeDestroy(window.directorChart);
             }]
         }
     });
-}
 
 
     window.addEventListener('DOMContentLoaded', async () => {
