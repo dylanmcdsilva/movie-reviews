@@ -650,10 +650,10 @@ DNF
                 `https://api.themoviedb.org/3/movie/${movieId}?api_key=${apiKey}&append_to_response=credits`
             );
           const data = await detailsRes.json(); 
-          
+
 // ⭐ IMDb rating via OMDb
 const omdbRes = await fetch(
-  `https://www.omdbapi.com/?i=${imdbID}&apikey=YOUR_OMDB_KEY`
+  `https://www.omdbapi.com/?i=${imdbID}&apikey=e577f364`
 );
 const omdbData = await omdbRes.json();
 
