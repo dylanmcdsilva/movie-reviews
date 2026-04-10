@@ -38,7 +38,7 @@ nav a:hover {
 
 h1 , h2 {
     text-align: center;
-     letter-spacing: 1px
+     letter-spacing: 1px;
 }
 
 h1 {
@@ -163,7 +163,7 @@ color: #e0e0e0;
     transition: transform 0.25s ease, box-shadow 0.25s ease;
 
     overflow: hidden;
-     align-items: center
+     align-items: center;
     }
 
 .filmes.rating-10::before,
