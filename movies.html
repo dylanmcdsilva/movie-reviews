@@ -915,6 +915,12 @@ function updateAdvancedDashboard() {
     });
 }
 
+function safeDestroy(chartId) {
+    const chartStatus = Chart.getChart(chartId); // Procura se o gráfico existe
+    if (chartStatus !== undefined) {
+        chartStatus.destroy(); // Se existir, destrói-o para evitar sobreposição
+    }
+}
 safeDestroy(window.ratingChart);
 safeDestroy(window.genreChart);
 safeDestroy(window.directorChart);
