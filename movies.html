@@ -635,8 +635,10 @@ DNF
         document.getElementById('directorSelect').value = "";
         document.getElementById('ratingInput').value = "";
 
-        updateMovieCount(); // ✅ update after reset
+        updateMovieCount();
+        updateAdvancedDashboard(); // ✅ update after reset
     }
+
 
     async function addTMDbData() {
     const movies = document.querySelectorAll('.filmes');
@@ -719,6 +721,7 @@ movie.appendChild(ratingRow);
     }
 
     updateMovieCount();
+    updateAdvancedDashboard();
 
     }
 
@@ -765,27 +768,9 @@ movie.style.display =
     });
 
     updateMovieCount();
+    updateAdvancedDashboard();
 }
-    // 🚀 INIT
-    window.addEventListener('DOMContentLoaded', () => {
-        const select = document.getElementById('directorSelect');
-        const directorCounts = {};
-
-        document.querySelectorAll('.filmes').forEach(movie => {
-            movie.querySelectorAll('.director').forEach(el => {
-                const d = el.dataset.director;
-                directorCounts[d] = (directorCounts[d] || 0) + 1;
-            });
-        });
-
-        Object.keys(directorCounts).sort().forEach(director => {
-            const option = document.createElement('option');
-            option.value = director;
-            option.textContent = director.replace(/\b\w/g, l => l.toUpperCase()) + ` (${directorCounts[director]})`;
-            select.appendChild(option);
-        });
-
-        function updateAdvancedDashboard() {
+ function updateAdvancedDashboard() {
     const movies = document.querySelectorAll('.filmes');
 
     let ratingBuckets = {
@@ -874,10 +859,31 @@ movie.style.display =
     });
 }
 
+
+    // 🚀 INIT
+    window.addEventListener('DOMContentLoaded', () => {
+        const select = document.getElementById('directorSelect');
+        const directorCounts = {};
+
+        document.querySelectorAll('.filmes').forEach(movie => {
+            movie.querySelectorAll('.director').forEach(el => {
+                const d = el.dataset.director;
+                directorCounts[d] = (directorCounts[d] || 0) + 1;
+            });
+        });
+
+        Object.keys(directorCounts).sort().forEach(director => {
+            const option = document.createElement('option');
+            option.value = director;
+            option.textContent = director.replace(/\b\w/g, l => l.toUpperCase()) + ` (${directorCounts[director]})`;
+            select.appendChild(option);
+        });
+
+       
         applyRatingColors();
         addTMDbData();
+                updateAdvancedDashboard();
         updateMovieCount(); // ✅ initial count
-        updateAdvancedDashboard();
     });
 
 </script>
