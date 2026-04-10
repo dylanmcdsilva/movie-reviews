@@ -674,10 +674,12 @@ if (omdbData.imdbRating && omdbData.imdbRating !== "N/A") {
                 movie.insertBefore(img, movie.children[1]);
             }
 
-            // ⭐ RATING
-            const rating = document.createElement("p");
-            rating.innerHTML = `⭐ TMDb: <strong>${data.vote_average}</strong>`;
-            movie.appendChild(rating);
+     // 🍅 Rotten Tomatoes
+const rt = omdbData.Ratings?.find(r => r.Source === "Rotten Tomatoes");
+
+const rtEl = document.createElement("p");
+rtEl.innerHTML = `🍅 Rotten Tomatoes: <strong>${rt ? rt.Value : "N/A"}</strong>`;
+movie.appendChild(rtEl);
 
             // 🎭 GENRES
             const genre = document.createElement("p");
