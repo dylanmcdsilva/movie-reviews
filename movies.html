@@ -58,7 +58,6 @@
 <p class="director" data-director="quentin tarantino">
   Director: Quentin Tarantino</p>
 </div>
-1
 
 
 <div class="filmes" data-imdb="tt0816692">
@@ -915,12 +914,6 @@ function updateAdvancedDashboard() {
     });
 }
 
-function safeDestroy(chartId) {
-    const chartStatus = Chart.getChart(chartId); // Procura se o gráfico existe
-    if (chartStatus !== undefined) {
-        chartStatus.destroy(); // Se existir, destrói-o para evitar sobreposição
-    }
-}
     window.addEventListener('DOMContentLoaded', async () => {
     const select = document.getElementById('directorSelect');
     const directorCounts = {};
