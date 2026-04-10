@@ -651,19 +651,24 @@ DNF
             );
           const data = await detailsRes.json(); 
 
-// ⭐ IMDb rating via OMDb
-const omdbRes = await fetch(
-  `https://www.omdbapi.com/?i=${imdbID}&apikey=e577f364`
-);
-const omdbData = await omdbRes.json();
 
-console.log("OMDb response:", omdbData);
+// ⭐ IMDb
+const imdb = omdbData?.imdbRating;
 
-if (omdbData.imdbRating && omdbData.imdbRating !== "N/A") {
-    const imdbRating = document.createElement("p");
-    imdbRating.innerHTML = `⭐ IMDb: <strong>${omdbData.imdbRating}</strong>`;
-    movie.appendChild(imdbRating);
-}
+// 🍅 Rotten Tomatoes
+const rt = omdbData?.Ratings?.find(r => r.Source === "Rotten Tomatoes")?.Value;
+
+// 🧾 clean row container
+const ratingRow = document.createElement("p");
+ratingRow.className = "rating-row";
+
+ratingRow.innerHTML = `
+    ⭐ IMDb: <strong>${imdb ?? "N/A"}</strong>
+    <span class="sep">|</span>
+    🍅 RT: <strong>${rt ?? "N/A"}</strong>
+`;
+
+movie.appendChild(ratingRow);
 
             // 🖼️ POSTER
             if (data.poster_path) {
@@ -674,12 +679,6 @@ if (omdbData.imdbRating && omdbData.imdbRating !== "N/A") {
                 movie.insertBefore(img, movie.children[1]);
             }
 
-     // 🍅 Rotten Tomatoes
-const rt = omdbData.Ratings?.find(r => r.Source === "Rotten Tomatoes");
-
-const rtEl = document.createElement("p");
-rtEl.innerHTML = `🍅 Rotten Tomatoes: <strong>${rt ? rt.Value : "N/A"}</strong>`;
-movie.appendChild(rtEl);
 
             // 🎭 GENRES
             const genre = document.createElement("p");
