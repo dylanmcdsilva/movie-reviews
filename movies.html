@@ -624,74 +624,67 @@ DNF
         updateMovieCount(); // ✅ update after reset
     }
 
-    // 🎬 API (DO NOT CHANGE)
-    async function addIMDbData() {
-        const movies = document.querySelectorAll('.filmes');
-        const apiKey = "e577f364";
+    async function addTMDbData() {
+    const movies = document.querySelectorAll('.filmes');
+    const apiKey = "28b378c47975b32d807fca8f2eb81e84";
 
-        for (let movie of movies) {
-            const imdbID = movie.getAttribute('data-imdb');
-            if (!imdbID) continue;
+    for (let movie of movies) {
+        if (movie.dataset.loaded) continue;
+        movie.dataset.loaded = "true";
 
-            try {
-                const res = await fetch(`https://www.omdbapi.com/?i=${imdbID}&apikey=${apiKey}`);
-                const data = await res.json();
+        const imdbID = movie.getAttribute('data-imdb');
+        if (!imdbID) continue;
 
-// ✅ STORE ACTORS (NEW)
-movie.dataset.actors = data.Actors ? data.Actors.toLowerCase() : "";
+        try {
+            // 🔍 1. converter IMDb → TMDb
+            const findRes = await fetch(
+                `https://api.themoviedb.org/3/find/${imdbID}?api_key=${apiKey}&external_source=imdb_id`
+            );
+            const findData = await findRes.json();
 
-// store awards for filtering
-movie.dataset.awards = data.Awards ? data.Awards.toLowerCase() : "";
+            const movieId = findData.movie_results[0]?.id;
+            if (!movieId) continue;
 
-// check for oscar winner
-if (data.Awards && data.Awards.includes("Oscar")) {
-    movie.classList.add("oscar-winner");
-}
-                if (data.Response === "True") {
+            // 🎬 2. buscar detalhes + atores
+            const detailsRes = await fetch(
+                `https://api.themoviedb.org/3/movie/${movieId}?api_key=${apiKey}&append_to_response=credits`
+            );
+            const data = await detailsRes.json();
 
-                    // 🎬 POSTER
-                    if (data.Poster && data.Poster !== "N/A") {
-                        const img = document.createElement("img");
-                        img.src = data.Poster;
-                        img.width = 300;
-                        img.height = 400;
-                        movie.insertBefore(img, movie.children[1]);
-                    }
-
-                    // ⭐ IMDb Rating
-                    const imdbPara = document.createElement("p");
-                    imdbPara.style.color = "#f5c518";
-                    imdbPara.innerHTML = `⭐ IMDb: <strong>${data.imdbRating}</strong>`;
-                    movie.appendChild(imdbPara);
-
-                    // 🍅 Rotten Tomatoes
-const rotten = data.Ratings.find(r => r.Source === "Rotten Tomatoes");
-
-if (rotten) {
-    const rtPara = document.createElement("p");
-    rtPara.style.color = "#fa320a";
-    rtPara.innerHTML = `🍅 Rotten Tomatoes: <strong>${rotten.Value}</strong>`;
-    movie.appendChild(rtPara);
-}
-                    // 🎭 GENRE
-                    const genre = document.createElement("p");
-                    genre.innerHTML = `🎭 ${data.Genre}`;
-                    movie.appendChild(genre);
-                }
-
-                
-const awardsPara = document.createElement("p");
-awardsPara.className = "awards";
-awardsPara.textContent = `🏆 ${data.Awards || "No awards"}`;
-movie.appendChild(awardsPara);
-
-
-            } catch (err) {
-                console.error("Erro na API:", err);
+            // 🖼️ POSTER
+            if (data.poster_path) {
+                const img = document.createElement("img");
+                img.src = `https://image.tmdb.org/t/p/w500${data.poster_path}`;
+                img.width = 300;
+                img.height = 400;
+                movie.insertBefore(img, movie.children[1]);
             }
-        }
 
-        updateMovieCount(); // ✅ update after API loads
+            // ⭐ RATING
+            const rating = document.createElement("p");
+            rating.innerHTML = `⭐ TMDb: <strong>${data.vote_average}</strong>`;
+            movie.appendChild(rating);
+
+            // 🎭 GENRES
+            const genre = document.createElement("p");
+            genre.innerHTML = `🎭 ${data.genres.map(g => g.name).join(", ")}`;
+            movie.appendChild(genre);
+
+            // 🎬 ACTORS (TOP 5)
+            const actors = data.credits.cast
+                .slice(0, 5)
+                .map(a => a.name)
+                .join(", ");
+
+            movie.dataset.actors = actors.toLowerCase();
+
+        } catch (err) {
+            console.error("TMDb error:", err);
+        }
+    }
+
+    updateMovieCount();
+
     }
 
     // 🎨 APPLY COLORS
@@ -758,7 +751,7 @@ movie.style.display =
         });
 
         applyRatingColors();
-        addIMDbData();
+        addTMDbData();
         updateMovieCount(); // ✅ initial count
     });
 
