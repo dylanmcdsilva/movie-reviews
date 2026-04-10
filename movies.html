@@ -814,10 +814,15 @@ movie.style.display =
         });
     });
 
-    // destroy old charts if they exist
-    if (window.ratingChart) window.ratingChart.destroy();
-    if (window.genreChart) window.genreChart.destroy();
-    if (window.directorChart) window.directorChart.destroy();
+function safeDestroy(chart) {
+    if (chart && typeof chart.destroy === "function") {
+        chart.destroy();
+    }
+}
+
+safeDestroy(window.ratingChart);
+safeDestroy(window.genreChart);
+safeDestroy(window.directorChart);
 
     // 📊 Rating Chart
     window.ratingChart = new Chart(document.getElementById('ratingChart'), {
