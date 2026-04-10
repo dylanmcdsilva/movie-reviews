@@ -283,3 +283,13 @@ color: #e0e0e0;
     left: 10px;
     font-size: 18px;
 }
+.rating-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    font-size: 14px;
+}
+
+.rating-row .sep {
+    opacity: 0.5;
+}
