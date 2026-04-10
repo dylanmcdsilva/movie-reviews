@@ -921,50 +921,6 @@ function safeDestroy(chartId) {
         chartStatus.destroy(); // Se existir, destrói-o para evitar sobreposição
     }
 }
-safeDestroy(window.ratingChart);
-safeDestroy(window.genreChart);
-safeDestroy(window.directorChart);
-
-    // 📊 Rating Chart
-    window.ratingChart = new Chart(document.getElementById('ratingChart'), {
-        type: 'bar',
-        data: {
-            labels: Object.keys(ratingBuckets),
-            datasets: [{
-                label: "Movies by Rating",
-                data: Object.values(ratingBuckets)
-            }]
-        }
-    });
-
-    // 🎭 Genre Chart
-    window.genreChart = new Chart(document.getElementById('genreChart'), {
-        type: 'pie',
-        data: {
-            labels: Object.keys(genreCount),
-            datasets: [{
-                data: Object.values(genreCount)
-            }]
-        }
-    });
-
-    // 🎬 Director Chart (Top 5)
-    const topDirectors = Object.entries(directorCount)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 5);
-
-    window.directorChart = new Chart(document.getElementById('directorChart'), {
-        type: 'bar',
-        data: {
-            labels: topDirectors.map(d => d[0]),
-            datasets: [{
-                label: "Top Directors",
-                data: topDirectors.map(d => d[1])
-            }]
-        }
-    });
-
-
     window.addEventListener('DOMContentLoaded', async () => {
     const select = document.getElementById('directorSelect');
     const directorCounts = {};
