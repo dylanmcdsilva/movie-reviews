@@ -651,6 +651,12 @@ DNF
             );
           const data = await detailsRes.json(); 
 
+          
+          // ⭐ OMDb request (ADD THIS)
+const omdbRes = await fetch(
+    `https://www.omdbapi.com/?i=${imdbID}&apikey=e577f364`
+);
+const omdbData = await omdbRes.json();
 
 // ⭐ IMDb
 const imdb = omdbData?.imdbRating;
