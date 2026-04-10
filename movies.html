@@ -657,6 +657,8 @@ const omdbRes = await fetch(
 );
 const omdbData = await omdbRes.json();
 
+console.log("OMDb response:", omdbData);
+
 if (omdbData.imdbRating && omdbData.imdbRating !== "N/A") {
     const imdbRating = document.createElement("p");
     imdbRating.innerHTML = `⭐ IMDb: <strong>${omdbData.imdbRating}</strong>`;
