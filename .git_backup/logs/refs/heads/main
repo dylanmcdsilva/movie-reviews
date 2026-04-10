@@ -1,0 +1,27 @@
+0000000000000000000000000000000000000000 cec748f3bbb9d65e83f154e6dcc9a5e801b2f9f5 Dylan Silva <dylan@email.com> 1775676114 +0100	commit (initial): add pages
+cec748f3bbb9d65e83f154e6dcc9a5e801b2f9f5 8e799889d3b70544b58138588c328e66530b218b Dylan Silva <dylan@email.com> 1775676530 +0100	commit: add novo filme
+8e799889d3b70544b58138588c328e66530b218b 0511a022be760f86e53e2f190180e80a41348abd Dylan Silva <dylan@email.com> 1775676977 +0100	commit: descrição
+0511a022be760f86e53e2f190180e80a41348abd 239593fa931b3c6a68badd50b5ae1191ef2bde1f Dylan Silva <dylan@email.com> 1775692404 +0100	commit: good will
+239593fa931b3c6a68badd50b5ae1191ef2bde1f 7ec522f1b9a4a4bcfade9dc865bea8cfdbaff5c9 Dylan Silva <dylan@email.com> 1775739674 +0100	commit: in bruges
+7ec522f1b9a4a4bcfade9dc865bea8cfdbaff5c9 7ed0e1609f811dfcc86605f9c4875f23410c3b32 Dylan Silva <dylan@email.com> 1775739933 +0100	commit: function add
+7ed0e1609f811dfcc86605f9c4875f23410c3b32 ef0b1ae058d530b8bbc1ac49e94ecb324a8ede2a Dylan Silva <dylan@email.com> 1775761503 +0100	commit: adicionar quebra de p
+ef0b1ae058d530b8bbc1ac49e94ecb324a8ede2a d0c4f9503b4ca45b842475e0f9c50121906eec4e Dylan Silva <dylan@email.com> 1775761795 +0100	commit: melhorarar search e ano de good will
+d0c4f9503b4ca45b842475e0f9c50121906eec4e 06d550ecd314c8bdcd7c834371e1e29b2e16cb20 Dylan Silva <dylan@email.com> 1775762145 +0100	commit: store de atores no api e search por atroes
+06d550ecd314c8bdcd7c834371e1e29b2e16cb20 7f92464b004d108fa73c5c0c5a6a52eca183a3e4 Dylan Silva <dylan@email.com> 1775762486 +0100	commit: update search
+7f92464b004d108fa73c5c0c5a6a52eca183a3e4 24dfbc67bd2414cb8200e1eb567c815d7168ae02 Dylan Silva <dylan@email.com> 1775762801 +0100	commit: duplicado
+24dfbc67bd2414cb8200e1eb567c815d7168ae02 1bdfa2d0e3dd9f5da36c4f9c620d13b8c58ebd66 Dylan Silva <dylan@email.com> 1775762951 +0100	commit: actors lowercase
+1bdfa2d0e3dd9f5da36c4f9c620d13b8c58ebd66 b9a8c11be712801b1b2b6d83f0daec8079201a19 Dylan Silva <dylan@email.com> 1775793816 +0100	commit: gone girl
+b9a8c11be712801b1b2b6d83f0daec8079201a19 f7c4001e95b8b173310c69e22de433e362d09ef8 Dylan Silva <dylan@email.com> 1775835773 +0100	commit: swithc from omdb to tmdb
+f7c4001e95b8b173310c69e22de433e362d09ef8 7346121a8b3fac954a47a9b9f8ec563fde58ac6d Dylan Silva <dylan@email.com> 1775836288 +0100	commit: ir buscar o rating imdb
+7346121a8b3fac954a47a9b9f8ec563fde58ac6d 83345188e6c93c65d5df7619903ad6e0db0aa447 Dylan Silva <dylan@email.com> 1775836496 +0100	commit: duplicado
+83345188e6c93c65d5df7619903ad6e0db0aa447 e9dbf85f3df7042709c71c821528e66265ef1b2f Dylan Silva <dylan@email.com> 1775836634 +0100	commit: duplicado 2
+e9dbf85f3df7042709c71c821528e66265ef1b2f f524f071aaf87f32cee985d3c86d73c981735e81 Dylan Silva <dylan@email.com> 1775836840 +0100	commit: falta uma coisa
+f524f071aaf87f32cee985d3c86d73c981735e81 4285efdf17072ec4efdbbef1def2740bcf9b58ac Dylan Silva <dylan@email.com> 1775837077 +0100	commit: imdb api key
+4285efdf17072ec4efdbbef1def2740bcf9b58ac 26a17503d1c427fab10c602ef33ed27d95807e2a Dylan Silva <dylan@email.com> 1775837266 +0100	commit: outra vez omdb
+26a17503d1c427fab10c602ef33ed27d95807e2a b8863e4acdb4a2bfac7e69d156da468980336b84 Dylan Silva <dylan@email.com> 1775837463 +0100	commit: rotten
+b8863e4acdb4a2bfac7e69d156da468980336b84 64a873bb00c77a14ab7231597235148769bf9141 Dylan Silva <dylan@email.com> 1775837965 +0100	commit: align rotten e imdb
+64a873bb00c77a14ab7231597235148769bf9141 b9f5f30f9b6ab6943c99da7c7d88a9379538fd17 Dylan Silva <dylan@email.com> 1775838037 +0100	commit: css rating row
+b9f5f30f9b6ab6943c99da7c7d88a9379538fd17 86c0cb2872a8c5bbf167d5df7d1cbe9b4a608416 Dylan Silva <dylan@email.com> 1775838675 +0100	commit: add imdb api key
+86c0cb2872a8c5bbf167d5df7d1cbe9b4a608416 e2a17198242c55a8b16c1fe937bfe68a0fb3a09b Dylan Silva <dylan@email.com> 1775839248 +0100	commit: dashboard
+e2a17198242c55a8b16c1fe937bfe68a0fb3a09b d4dc83a978da32cd6fa5fb094efaeb58bc46dfb0 Dylan Silva <dylan@email.com> 1775840288 +0100	commit: melhoria no erro chart
+d4dc83a978da32cd6fa5fb094efaeb58bc46dfb0 5a55af7ac2a0f9b1253cda906f7234c1cadfc7f2 Dylan Silva <dylan@email.com> 1775840601 +0100	commit: mais uma correção
