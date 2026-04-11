@@ -12,6 +12,13 @@
 <a href="politics.html"class="nav_politics">Politica</a>
 </nav>
 <h1> Filmes</h1>
+
+<div class="stats">
+  <div class="card">⭐ Avg Rating: <span id="avgRating"></span></div>
+  <div class="card">🎬 Movies: <span id="totalMovies"></span></div>
+  <div class="card">🏆 Top Director: <span id="topDirector"></span></div>
+</div>
+
 <div id="dashboard">
 
   <h2>📊 Advanced Dashboard</h2>
@@ -794,6 +801,18 @@ function updateAdvancedDashboard() {
         else if (rating === 8) ratingBuckets["8"]++;
         else if (rating === 7) ratingBuckets["7"]++;
         else ratingBuckets["6-↓"]++;
+const totalMovies = Object.values(ratingBuckets).reduce((a, b) => a + b, 0);
+
+const avg =
+    totalMovies === 0 ? 0 :
+    [...movies]
+        .filter(m => m.style.display !== "none")
+        .reduce((sum, m) =>
+            sum + parseInt(m.querySelector('.rating').dataset.rating || 0), 0
+        ) / totalMovies;
+
+document.getElementById("avgRating").textContent = avg.toFixed(1);
+document.getElementById("totalMovies").textContent = totalMovies;
 
         // genres
         movie.querySelectorAll('p').forEach(p => {
@@ -826,31 +845,42 @@ function updateAdvancedDashboard() {
     // =====================
     // ⭐ RATING (modern bars)
     // =====================
+    const ctx = document.getElementById('ratingChart').getContext('2d');
+
+const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+gradient.addColorStop(0, "#42a5f5");
+gradient.addColorStop(1, "#1565c0");
     window.ratingChart = new Chart(document.getElementById('ratingChart'), {
         type: 'bar',
         data: {
             labels: Object.keys(ratingBuckets),
             datasets: [{
                 data: Object.values(ratingBuckets),
-                backgroundColor: "#1565c0",
+                backgroundColor: gradient,
                 borderRadius: 10,
                 barThickness: 35
             }]
         },
-        options: {
-            plugins: { legend: { display: false } },
-            scales: {
-                x: {
-                    grid: { display: false },
-                    ticks: { color: "#bdbdbd" }
-                },
-                y: {
-                    grid: { color: "rgba(255,255,255,0.05)" },
-                    ticks: { display: false },
-                    beginAtZero: true
-                }
-            }
+    options: {
+    plugins: {
+        legend: { display: false },
+        tooltip: {
+            backgroundColor: "#222",
+            borderColor: "#444",
+            borderWidth: 1
         }
+    },
+    scales: {
+        x: {
+            grid: { display: false },
+            ticks: { color: "#aaa" }
+        },
+        y: {
+            grid: { color: "rgba(255,255,255,0.03)" },
+            ticks: { display: false }
+        }
+    }
+}
     });
 
     // =====================

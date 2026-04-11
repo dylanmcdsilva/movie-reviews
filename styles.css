@@ -313,7 +313,7 @@ color: #e0e0e0;
 
 .charts {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+      grid-template-columns: 2fr 1fr;
     gap: 25px;
     max-width: 1200px;
     margin: 0 auto;
@@ -351,3 +351,28 @@ color: #e0e0e0;
         flex-direction: column;  /* Stack filter items vertically */
         align-items: stretch;    /* Ensure filters take full width */
     }
+
+    .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.card {
+    background: #1e1e1e;
+    padding: 20px;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    border: 1px solid #2a2a2a;
+}
+}
+
+canvas {
+    transition: transform 0.3s ease;
+}
+
+canvas:hover {
+    transform: scale(1.02);
+}
