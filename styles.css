@@ -313,34 +313,43 @@ color: #e0e0e0;
 
 .charts {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
     gap: 25px;
-
     max-width: 1200px;
     margin: 0 auto;
+    overflow: hidden; /* Ensures that no chart overflows the container */
 }
 
 #dashboard {
     max-width: 1200px;
     margin: 40px auto;
-
     background: #181818;
     border-radius: 16px;
     padding: 25px;
-
     border: 1px solid #2a2a2a;
+    overflow: auto; /* Ensures that any overflowing content is scrollable */
 }
-
 .charts canvas {
     background: #1e1e1e;
     border-radius: 16px;
-
     padding: 15px;
-
-    height: 320px !important;
-
-    border: 1px solid #2a2a2a;
-    transition: 0.25s;
+    width: 100%; /* Ensure canvas takes full width of the container */
+    height: auto;
+    max-width: 100%;
 }
+
+@media (max-width: 768px) {
+    #dashboard {
+        padding: 15px;  /* Reduce padding for smaller screens */
+    }
+
+    .charts {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));  /* Smaller cards */
+    }
+
+    .filters {
+        flex-direction: column;  /* Stack filter items vertically */
+        align-items: stretch;    /* Ensure filters take full width */
+    }
 
 
