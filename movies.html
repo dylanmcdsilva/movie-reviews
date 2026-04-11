@@ -19,19 +19,21 @@
   <div class="card">🏆 Top Director: <span id="topDirector"></span></div>
 </div>
 
-<div id="dashboard">
+<div class="charts">
 
-  <h2>📊 Advanced Dashboard</h2>
-
-  <div class="charts">
-
+  <div class="chart-box">
     <canvas id="ratingChart"></canvas>
-
-    <canvas id="genreChart"></canvas>
-
-    <canvas id="directorChart"></canvas>
-
   </div>
+
+  <div class="chart-box">
+    <canvas id="genreChart"></canvas>
+  </div>
+
+  <div class="chart-box">
+    <canvas id="directorChart"></canvas>
+  </div>
+
+</div>
 
 </div>
 <div id="movieCount">Movies: 0</div>
@@ -862,26 +864,16 @@ gradient.addColorStop(1, "#1565c0");
             }]
         },
     options: {
-    plugins: {
-        legend: { display: false },
-        tooltip: {
-            backgroundColor: "#222",
-            borderColor: "#444",
-            borderWidth: 1
-        }
-    },
-    scales: {
-        x: {
-            grid: { display: false },
-            ticks: { color: "#aaa" }
-        },
-        y: {
-            grid: { color: "rgba(255,255,255,0.03)" },
-            ticks: { display: false }
+        responsive: true,
+        maintainAspectRatio: false, // 🔥 ADD THIS HERE
+
+        plugins: { legend: { display: false } },
+        scales: {
+            x: { grid: { display: false } },
+            y: { grid: { color: "rgba(255,255,255,0.05)" } }
         }
     }
-}
-    });
+});
 
     // =====================
     // 🎭 GENRE (modern donut)
@@ -899,16 +891,17 @@ gradient.addColorStop(1, "#1565c0");
                 borderWidth: 0
             }]
         },
-        options: {
-            cutout: "70%",
-            plugins: {
-                legend: {
-                    position: "bottom",
-                    labels: { color: "#bdbdbd" }
-                }
-            }
+         options: {
+        responsive: true,
+        maintainAspectRatio: false, // 🔥 ADD THIS HERE
+
+        plugins: { legend: { display: false } },
+        scales: {
+            x: { grid: { display: false } },
+            y: { grid: { color: "rgba(255,255,255,0.05)" } }
         }
-    });
+    }
+});
 
     // =====================
     // 🎬 DIRECTORS (top 5)
@@ -927,21 +920,17 @@ gradient.addColorStop(1, "#1565c0");
                 borderRadius: 10
             }]
         },
-        options: {
-            plugins: { legend: { display: false } },
-            scales: {
-                x: {
-                    grid: { display: false },
-                    ticks: { color: "#bdbdbd" }
-                },
-                y: {
-                    grid: { color: "rgba(255,255,255,0.05)" },
-                    ticks: { display: false },
-                    beginAtZero: true
-                }
-            }
+     options: {
+        responsive: true,
+        maintainAspectRatio: false, // 🔥 ADD THIS HERE
+
+        plugins: { legend: { display: false } },
+        scales: {
+            x: { grid: { display: false } },
+            y: { grid: { color: "rgba(255,255,255,0.05)" } }
         }
-    });
+    }
+});
 }
 
     window.addEventListener('DOMContentLoaded', async () => {
