@@ -654,33 +654,123 @@ DNF
         updateAdvancedDashboard(); // ✅ update after reset
     }
 
-
-    async function addTMDbData() {
+async function addTMDbData() {
     const movies = document.querySelectorAll('.filmes');
-    const apiKey = "28b378c47975b32d807fca8f2eb81e84";
+    const apiKey = "YOUR_TMDB_KEY";
 
     for (let movie of movies) {
         if (movie.dataset.loaded) continue;
         movie.dataset.loaded = "true";
 
         const imdbID = movie.getAttribute('data-imdb');
+        const title = movie.querySelector("h3")?.innerText || "";
+
         if (!imdbID) continue;
 
+        let data = null;
+
         try {
-            // 🔍 1. converter IMDb → TMDb
+            // =========================
+            // 1. TMDb FIND (PRIMARY)
+            // =========================
             const findRes = await fetch(
                 `https://api.themoviedb.org/3/find/${imdbID}?api_key=${apiKey}&external_source=imdb_id`
             );
             const findData = await findRes.json();
 
-            const movieId = findData.movie_results[0]?.id;
-            if (!movieId) continue;
+            let movieId = findData.movie_results?.[0]?.id;
 
-            // 🎬 2. buscar detalhes + atores
+            // =========================
+            // 2. FALLBACK SEARCH (IMPORTANT)
+            // =========================
+            if (!movieId) {
+                const searchRes = await fetch(
+                    `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${encodeURIComponent(title)}`
+                );
+                const searchData = await searchRes.json();
+                movieId = searchData.results?.[0]?.id;
+            }
+
+            // =========================
+            // 3. IF STILL NOTHING → SAFE EXIT
+            // =========================
+            if (!movieId) {
+                console.warn("No TMDb match:", title);
+                movie.style.opacity = "0.7";
+                continue;
+            }
+
+            // =========================
+            // 4. DETAILS FETCH (SAFE)
+            // =========================
             const detailsRes = await fetch(
                 `https://api.themoviedb.org/3/movie/${movieId}?api_key=${apiKey}&append_to_response=credits`
             );
-          const data = await detailsRes.json(); 
+            data = await detailsRes.json();
+
+        } catch (err) {
+            console.warn("TMDb failed for:", title, err);
+        }
+
+        // =========================
+        // 5. ALWAYS CONTINUE (NO CRASH)
+        // =========================
+
+        // ---------- POSTER (SAFE) ----------
+        try {
+            if (data?.poster_path) {
+                const img = document.createElement("img");
+                img.src = `https://image.tmdb.org/t/p/w500${data.poster_path}`;
+                img.loading = "lazy";
+                movie.prepend(img);
+            }
+        } catch {}
+
+        // ---------- GENRES ----------
+        try {
+            if (data?.genres?.length) {
+                const genre = document.createElement("p");
+                genre.innerHTML = `🎭 ${data.genres.map(g => g.name).join(", ")}`;
+                movie.appendChild(genre);
+            }
+        } catch {}
+
+        // ---------- ACTORS ----------
+        try {
+            const actors = data?.credits?.cast
+                ?.slice(0, 5)
+                ?.map(a => a.name)
+                ?.join(", ");
+
+            if (actors) {
+                movie.dataset.actors = actors.toLowerCase();
+            }
+        } catch {}
+
+        // ---------- OMDb (OPTIONAL, NEVER BREAKS) ----------
+        try {
+            const omdbRes = await fetch(
+                `https://www.omdbapi.com/?i=${imdbID}&apikey=YOUR_OMDB_KEY`
+            );
+            const omdbData = await omdbRes.json();
+
+            const imdb = omdbData?.imdbRating || "N/A";
+            const rt = omdbData?.Ratings?.find(r => r.Source === "Rotten Tomatoes")?.Value || "N/A";
+
+            const row = document.createElement("p");
+            row.className = "rating-row";
+            row.innerHTML = `⭐ IMDb: ${imdb} | 🍅 RT: ${rt}`;
+
+            movie.appendChild(row);
+        } catch {
+            // silently ignore OMDb failures
+        }
+    }
+
+    // ALWAYS UPDATE UI
+    updateMovieCount();
+    updateAdvancedDashboard();
+}
 
           
           // ⭐ OMDb request (ADD THIS)
@@ -730,15 +820,8 @@ movie.appendChild(ratingRow);
 
             movie.dataset.actors = actors.toLowerCase();
 
-        } catch (err) {
-            console.error("TMDb error:", err);
-        }
-    }
-
     updateMovieCount();
     updateAdvancedDashboard();
-
-    }
 
     // 🎨 APPLY COLORS
     function applyRatingColors() {
