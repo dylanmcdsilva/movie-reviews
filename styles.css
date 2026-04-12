@@ -368,6 +368,9 @@ color: #e0e0e0;
 
 canvas {
     transition: transform 0.3s ease;
+    width: 100% !important;
+    height: 100% !important;
+    display: block;
 }
 
 canvas:hover {
@@ -394,4 +397,21 @@ canvas:hover {
 
 h2 {
     margin-bottom: 25px;
+}
+
+.chart-container {
+    height: 300px;   /* adjust as needed */
+    width: 100%;
+    position: relative;
+}
+
+.dashboard {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+.card {
+    flex: 1 1 300px;
 }
