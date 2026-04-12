@@ -772,56 +772,6 @@ async function addTMDbData() {
     updateAdvancedDashboard();
 }
 
-          
-          // ⭐ OMDb request (ADD THIS)
-const omdbRes = await fetch(
-    `https://www.omdbapi.com/?i=${imdbID}&apikey=e577f364`
-);
-const omdbData = await omdbRes.json();
-
-// ⭐ IMDb
-const imdb = omdbData?.imdbRating;
-
-// 🍅 Rotten Tomatoes
-const rt = omdbData?.Ratings?.find(r => r.Source === "Rotten Tomatoes")?.Value;
-
-// 🧾 clean row container
-const ratingRow = document.createElement("p");
-ratingRow.className = "rating-row";
-
-ratingRow.innerHTML = `
-    ⭐ IMDb: <strong>${imdb ?? "N/A"}</strong>
-    <span class="sep">|</span>
-    🍅 RT: <strong>${rt ?? "N/A"}</strong>
-`;
-
-movie.appendChild(ratingRow);
-
-            // 🖼️ POSTER
-            if (data.poster_path) {
-                const img = document.createElement("img");
-                img.src = `https://image.tmdb.org/t/p/w500${data.poster_path}`;
-                img.width = 300;
-                img.height = 400;
-                movie.insertBefore(img, movie.children[1]);
-            }
-
-
-            // 🎭 GENRES
-            const genre = document.createElement("p");
-            genre.innerHTML = `🎭 ${data.genres.map(g => g.name).join(", ")}`;
-            movie.appendChild(genre);
-
-            // 🎬 ACTORS (TOP 5)
-            const actors = data.credits.cast
-                .slice(0, 5)
-                .map(a => a.name)
-                .join(", ");
-
-            movie.dataset.actors = actors.toLowerCase();
-
-    updateMovieCount();
-    updateAdvancedDashboard();
 
     // 🎨 APPLY COLORS
     function applyRatingColors() {
