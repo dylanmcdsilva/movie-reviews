@@ -202,14 +202,14 @@
 
 
 </div>
-<div class="filmes" data-imdb="tt0078788">
+
+<!-- FIX: Added data-dnf="true" to mark DNF movies so they're excluded from stats -->
+<div class="filmes" data-imdb="tt0078788" data-dnf="true">
 <h3>Apocalipse Now (1979)</h3>
-<div class="rating" data-rating="0"> 0</div>
+<div class="rating" data-rating="0"> DNF</div>
 <p class="director" data-director="francis ford coppola">
   Director: Francis Ford Coppola</p>
 DNF 
-
-
 
 
 </div>
@@ -592,17 +592,18 @@ DNF
 </div>
 
 <script>
-    // 🔢 MOVIE COUNT
+    // Helper: is this movie a valid rated movie (not DNF, not rating 0)
+    function isRatedMovie(movie) {
+        return movie.dataset.dnf !== "true" &&
+               parseInt(movie.querySelector('.rating')?.dataset.rating || 0) > 0;
+    }
+
+    // 🔢 MOVIE COUNT — only counts visible, rated movies
     function updateMovieCount() {
-        const movies = document.querySelectorAll('.filmes');
         let count = 0;
-
-        movies.forEach(movie => {
-            if (movie.style.display !== "none") {
-                count++;
-            }
+        document.querySelectorAll('.filmes').forEach(movie => {
+            if (movie.style.display !== "none" && isRatedMovie(movie)) count++;
         });
-
         document.getElementById('movieCount').textContent = `Movies: ${count}`;
     }
 
@@ -641,7 +642,8 @@ DNF
             movie.style.display = (matchRating && matchDirector) ? "flex" : "none";
         });
 
-        updateMovieCount(); // ✅ IMPORTANT
+        updateMovieCount();
+        updateAdvancedDashboard();
     }
 
     // 🔄 RESET
@@ -649,137 +651,103 @@ DNF
         document.querySelectorAll('.filmes').forEach(movie => movie.style.display = "flex");
         document.getElementById('directorSelect').value = "";
         document.getElementById('ratingInput').value = "";
+        updateMovieCount();
+        updateAdvancedDashboard();
+    }
+
+    async function addTMDbData() {
+        const movies = document.querySelectorAll('.filmes');
+        const apiKey = "YOUR_TMDB_KEY";
+
+        for (let movie of movies) {
+            if (movie.dataset.loaded) continue;
+            movie.dataset.loaded = "true";
+
+            const imdbID = movie.getAttribute('data-imdb');
+            const title = movie.querySelector("h3")?.innerText || "";
+
+            if (!imdbID) continue;
+
+            let data = null;
+
+            try {
+                const findRes = await fetch(
+                    `https://api.themoviedb.org/3/find/${imdbID}?api_key=${apiKey}&external_source=imdb_id`
+                );
+                const findData = await findRes.json();
+                let movieId = findData.movie_results?.[0]?.id;
+
+                if (!movieId) {
+                    const searchRes = await fetch(
+                        `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${encodeURIComponent(title)}`
+                    );
+                    const searchData = await searchRes.json();
+                    movieId = searchData.results?.[0]?.id;
+                }
+
+                if (!movieId) {
+                    console.warn("No TMDb match:", title);
+                    movie.style.opacity = "0.7";
+                    continue;
+                }
+
+                const detailsRes = await fetch(
+                    `https://api.themoviedb.org/3/movie/${movieId}?api_key=${apiKey}&append_to_response=credits`
+                );
+                data = await detailsRes.json();
+
+            } catch (err) {
+                console.warn("TMDb failed for:", title, err);
+            }
+
+            try {
+                if (data?.poster_path) {
+                    const img = document.createElement("img");
+                    img.src = `https://image.tmdb.org/t/p/w500${data.poster_path}`;
+                    img.loading = "lazy";
+                    movie.prepend(img);
+                }
+            } catch {}
+
+            try {
+                if (data?.genres?.length) {
+                    const genre = document.createElement("p");
+                    genre.innerHTML = `🎭 ${data.genres.map(g => g.name).join(", ")}`;
+                    movie.appendChild(genre);
+                }
+            } catch {}
+
+            try {
+                const actors = data?.credits?.cast
+                    ?.slice(0, 5)
+                    ?.map(a => a.name)
+                    ?.join(", ");
+                if (actors) movie.dataset.actors = actors.toLowerCase();
+            } catch {}
+
+            try {
+                const omdbRes = await fetch(
+                    `https://www.omdbapi.com/?i=${imdbID}&apikey=YOUR_OMDB_KEY`
+                );
+                const omdbData = await omdbRes.json();
+                const imdb = omdbData?.imdbRating || "N/A";
+                const rt = omdbData?.Ratings?.find(r => r.Source === "Rotten Tomatoes")?.Value || "N/A";
+                const row = document.createElement("p");
+                row.className = "rating-row";
+                row.innerHTML = `⭐ IMDb: ${imdb} | 🍅 RT: ${rt}`;
+                movie.appendChild(row);
+            } catch {}
+        }
 
         updateMovieCount();
-        updateAdvancedDashboard(); // ✅ update after reset
+        updateAdvancedDashboard();
     }
-
-async function addTMDbData() {
-    const movies = document.querySelectorAll('.filmes');
-    const apiKey = "YOUR_TMDB_KEY";
-
-    for (let movie of movies) {
-        if (movie.dataset.loaded) continue;
-        movie.dataset.loaded = "true";
-
-        const imdbID = movie.getAttribute('data-imdb');
-        const title = movie.querySelector("h3")?.innerText || "";
-
-        if (!imdbID) continue;
-
-        let data = null;
-
-        try {
-            // =========================
-            // 1. TMDb FIND (PRIMARY)
-            // =========================
-            const findRes = await fetch(
-                `https://api.themoviedb.org/3/find/${imdbID}?api_key=${apiKey}&external_source=imdb_id`
-            );
-            const findData = await findRes.json();
-
-            let movieId = findData.movie_results?.[0]?.id;
-
-            // =========================
-            // 2. FALLBACK SEARCH (IMPORTANT)
-            // =========================
-            if (!movieId) {
-                const searchRes = await fetch(
-                    `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${encodeURIComponent(title)}`
-                );
-                const searchData = await searchRes.json();
-                movieId = searchData.results?.[0]?.id;
-            }
-
-            // =========================
-            // 3. IF STILL NOTHING → SAFE EXIT
-            // =========================
-            if (!movieId) {
-                console.warn("No TMDb match:", title);
-                movie.style.opacity = "0.7";
-                continue;
-            }
-
-            // =========================
-            // 4. DETAILS FETCH (SAFE)
-            // =========================
-            const detailsRes = await fetch(
-                `https://api.themoviedb.org/3/movie/${movieId}?api_key=${apiKey}&append_to_response=credits`
-            );
-            data = await detailsRes.json();
-
-        } catch (err) {
-            console.warn("TMDb failed for:", title, err);
-        }
-
-        // =========================
-        // 5. ALWAYS CONTINUE (NO CRASH)
-        // =========================
-
-        // ---------- POSTER (SAFE) ----------
-        try {
-            if (data?.poster_path) {
-                const img = document.createElement("img");
-                img.src = `https://image.tmdb.org/t/p/w500${data.poster_path}`;
-                img.loading = "lazy";
-                movie.prepend(img);
-            }
-        } catch {}
-
-        // ---------- GENRES ----------
-        try {
-            if (data?.genres?.length) {
-                const genre = document.createElement("p");
-                genre.innerHTML = `🎭 ${data.genres.map(g => g.name).join(", ")}`;
-                movie.appendChild(genre);
-            }
-        } catch {}
-
-        // ---------- ACTORS ----------
-        try {
-            const actors = data?.credits?.cast
-                ?.slice(0, 5)
-                ?.map(a => a.name)
-                ?.join(", ");
-
-            if (actors) {
-                movie.dataset.actors = actors.toLowerCase();
-            }
-        } catch {}
-
-        // ---------- OMDb (OPTIONAL, NEVER BREAKS) ----------
-        try {
-            const omdbRes = await fetch(
-                `https://www.omdbapi.com/?i=${imdbID}&apikey=YOUR_OMDB_KEY`
-            );
-            const omdbData = await omdbRes.json();
-
-            const imdb = omdbData?.imdbRating || "N/A";
-            const rt = omdbData?.Ratings?.find(r => r.Source === "Rotten Tomatoes")?.Value || "N/A";
-
-            const row = document.createElement("p");
-            row.className = "rating-row";
-            row.innerHTML = `⭐ IMDb: ${imdb} | 🍅 RT: ${rt}`;
-
-            movie.appendChild(row);
-        } catch {
-            // silently ignore OMDb failures
-        }
-    }
-
-    // ALWAYS UPDATE UI
-    updateMovieCount();
-    updateAdvancedDashboard();
-}
-
 
     // 🎨 APPLY COLORS
     function applyRatingColors() {
         document.querySelectorAll('.filmes').forEach(movie => {
             const rating = parseInt(movie.querySelector('.rating')?.dataset.rating);
-
             movie.classList.remove('rating-10', 'rating-9', 'rating-8', 'rating-7', 'rating-low');
-
             if (rating === 10) movie.classList.add('rating-10');
             else if (rating === 9) movie.classList.add('rating-9');
             else if (rating === 8) movie.classList.add('rating-8');
@@ -788,262 +756,203 @@ async function addTMDbData() {
         });
     }
 
-function searchMovies(query) {
-    query = query.toLowerCase();
+    function searchMovies(query) {
+        query = query.toLowerCase();
+        const ratingInput = document.getElementById('ratingInput').value;
+        const director = document.getElementById('directorSelect').value;
 
-    const ratingInput = document.getElementById('ratingInput').value;
-    const director = document.getElementById('directorSelect').value;
+        document.querySelectorAll('.filmes').forEach(movie => {
+            const title = movie.querySelector('h3').innerText.toLowerCase();
+            const actors = (movie.dataset.actors || "").toLowerCase();
+            const rating = parseInt(movie.querySelector('.rating').dataset.rating) || 0;
+            const directors = Array.from(movie.querySelectorAll('.director')).map(d => d.dataset.director);
 
-    document.querySelectorAll('.filmes').forEach(movie => {
-        const title = movie.querySelector('h3').innerText.toLowerCase();
-        const actors = (movie.dataset.actors || "").toLowerCase();
-        const rating = parseInt(movie.querySelector('.rating').dataset.rating) || 0;
+            const matchSearch = title.includes(query) || actors.includes(query);
+            const matchRating = !ratingInput || rating >= ratingInput;
+            const matchDirector = !director || directors.includes(director);
 
-        const directors = Array.from(movie.querySelectorAll('.director'))
-            .map(d => d.dataset.director);
+            movie.style.display = (matchSearch && matchRating && matchDirector) ? "flex" : "none";
+        });
 
-        // ✅ NOW SEARCHES TITLE + ACTORS
-        const matchSearch = title.includes(query) || actors.includes(query);
-const matchRating = !ratingInput || rating >= ratingInput;
-const matchDirector = !director || directors.includes(director);
+        updateMovieCount();
+        updateAdvancedDashboard();
+    }
 
-movie.style.display =
-    (matchSearch && matchRating && matchDirector)
-        ? "flex"
-        : "none";
+    // FIX: avg rating, totalMovies, topDirector now calculated OUTSIDE the forEach loop
+    // FIX: DNF movies (data-dnf="true" or rating 0) are excluded from all stats
+    function updateAdvancedDashboard() {
+        const movies = document.querySelectorAll('.filmes');
 
+        let ratingBuckets = { "10": 0, "9": 0, "8": 0, "7": 0, "6-↓": 0 };
+        let genreCount = {};
+        let directorCount = {};
+        let totalRatingSum = 0;
+        let totalMovies = 0;
 
-    });
+        movies.forEach(movie => {
+            if (movie.style.display === "none") return;
+            if (!isRatedMovie(movie)) return; // FIX: skip DNF / unrated
 
-    updateMovieCount();
-    updateAdvancedDashboard();
-}
-function updateAdvancedDashboard() {
-    const movies = document.querySelectorAll('.filmes');
+            const rating = parseInt(movie.querySelector('.rating')?.dataset.rating) || 0;
 
-    let ratingBuckets = {
-        "10": 0,
-        "9": 0,
-        "8": 0,
-        "7": 0,
-        "6-↓": 0
-    };
+            // FIX: accumulate outside the loop
+            totalRatingSum += rating;
+            totalMovies++;
 
-    let genreCount = {};
-    let directorCount = {};
+            if (rating === 10) ratingBuckets["10"]++;
+            else if (rating === 9) ratingBuckets["9"]++;
+            else if (rating === 8) ratingBuckets["8"]++;
+            else if (rating === 7) ratingBuckets["7"]++;
+            else ratingBuckets["6-↓"]++;
 
-    movies.forEach(movie => {
-        if (movie.style.display === "none") return;
-
-        const rating = parseInt(movie.querySelector('.rating')?.dataset.rating) || 0;
-
-        if (rating === 10) ratingBuckets["10"]++;
-        else if (rating === 9) ratingBuckets["9"]++;
-        else if (rating === 8) ratingBuckets["8"]++;
-        else if (rating === 7) ratingBuckets["7"]++;
-        else ratingBuckets["6-↓"]++;
-const totalMovies = Object.values(ratingBuckets).reduce((a, b) => a + b, 0);
-
-const avg =
-    totalMovies === 0 ? 0 :
-    [...movies]
-        .filter(m => m.style.display !== "none")
-        .reduce((sum, m) =>
-            sum + parseInt(m.querySelector('.rating').dataset.rating || 0), 0
-        ) / totalMovies;
-
-document.getElementById("avgRating").textContent = avg.toFixed(1);
-document.getElementById("totalMovies").textContent = totalMovies;
-
-        // genres
-        movie.querySelectorAll('p').forEach(p => {
-            if (p.innerText.startsWith("🎭")) {
-                p.innerText
-                    .replace("🎭", "")
-                    .split(",")
-                    .forEach(g => {
+            // genres
+            movie.querySelectorAll('p').forEach(p => {
+                if (p.innerText.startsWith("🎭")) {
+                    p.innerText.replace("🎭", "").split(",").forEach(g => {
                         const clean = g.trim();
                         if (clean) genreCount[clean] = (genreCount[clean] || 0) + 1;
                     });
-            }
-        });
-
-        // directors
-        movie.querySelectorAll('.director').forEach(d => {
-            const name = d.dataset.director;
-            directorCount[name] = (directorCount[name] || 0) + 1;
-        });
-    });
-
-    // destroy safely
-    if (window.ratingChart?.destroy) window.ratingChart.destroy();
-    if (window.genreChart?.destroy) window.genreChart.destroy();
-    if (window.directorChart?.destroy) window.directorChart.destroy();
-
-    Chart.defaults.color = "#bdbdbd";
-    Chart.defaults.borderColor = "rgba(255,255,255,0.05)";
-
-    // =====================
-   window.ratingChart = new Chart(document.getElementById('ratingChart'), {
-    type: 'bar',
-    data: {
-        labels: Object.keys(ratingBuckets),
-        datasets: [{
-            data: Object.values(ratingBuckets),
-            backgroundColor: [
-                "#2e7d32", // 10
-                "#1565c0", // 9
-                "#42a5f5", // 8
-                "#ffb300", // 7
-                "#c62828"  // low
-            ],
-            borderRadius: 12,
-            borderSkipped: false
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: { display: false },
-            tooltip: {
-                backgroundColor: "#1e1e1e",
-                borderColor: "#333",
-                borderWidth: 1
-            }
-        },
-        scales: {
-            x: {
-                grid: { display: false },
-                ticks: { color: "#aaa" }
-            },
-            y: {
-                grid: { color: "rgba(255,255,255,0.05)" },
-                ticks: { color: "#aaa", stepSize: 1 }
-            }
-        }
-    }
-});
-
-const sortedGenres = Object.entries(genreCount)
-    .sort((a, b) => b[1] - a[1]);
-
-window.genreChart = new Chart(document.getElementById('genreChart'), {
-    type: 'doughnut',
-    data: {
-        labels: sortedGenres.map(g => g[0]),
-        datasets: [{
-            data: sortedGenres.map(g => g[1]),
-            backgroundColor: [
-                "#1565c0",
-                "#42a5f5",
-                "#2e7d32",
-                "#66bb6a",
-                "#ffb300",
-                "#ffa726",
-                "#ef6c00",
-                "#c62828"
-            ],
-            borderWidth: 2,
-            borderColor: "#121212",
-            hoverOffset: 6
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        cutout: "65%",
-        plugins: {
-            legend: {
-                position: "bottom",
-                labels: {
-                    color: "#ccc",
-                    padding: 15,
-                    usePointStyle: true
                 }
-            },
-            tooltip: {
-                backgroundColor: "#1e1e1e",
-                borderColor: "#333",
-                borderWidth: 1
-            }
-        }
-    }
-});
+            });
 
-Chart.defaults.font.family = "Arial, sans-serif";
-Chart.defaults.plugins.tooltip.cornerRadius = 8;
-Chart.defaults.plugins.tooltip.padding = 10;
-
-const topDirectors = Object.entries(directorCount)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 5);
-
-window.directorChart = new Chart(document.getElementById('directorChart'), {
-    type: 'bar',
-    data: {
-        labels: topDirectors.map(d => d[0]),
-        datasets: [{
-            data: topDirectors.map(d => d[1]),
-            backgroundColor: "#42a5f5",
-            borderRadius: 12,
-            borderSkipped: false
-        }]
-    },
-    options: {
-        indexAxis: 'y', // 🔥 horizontal (MUCH better)
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: { display: false },
-            tooltip: {
-                backgroundColor: "#1e1e1e",
-                borderColor: "#333",
-                borderWidth: 1
-            }
-        },
-        scales: {
-            x: {
-                grid: { color: "rgba(255,255,255,0.05)" },
-                ticks: { color: "#aaa" }
-            },
-            y: {
-                grid: { display: false },
-                ticks: { color: "#ccc" }
-            }
-        }
-    }
-});
-
-    window.addEventListener('DOMContentLoaded', async () => {
-    const select = document.getElementById('directorSelect');
-    const directorCounts = {};
-
-    document.querySelectorAll('.filmes').forEach(movie => {
-        movie.querySelectorAll('.director').forEach(el => {
-            const d = el.dataset.director;
-            directorCounts[d] = (directorCounts[d] || 0) + 1;
+            // directors
+            movie.querySelectorAll('.director').forEach(d => {
+                const name = d.dataset.director;
+                directorCount[name] = (directorCount[name] || 0) + 1;
+            });
         });
-    });
 
-    Object.keys(directorCounts).sort().forEach(director => {
-        const option = document.createElement('option');
-        option.value = director;
-        option.textContent =
-            director.replace(/\b\w/g, l => l.toUpperCase()) +
-            ` (${directorCounts[director]})`;
-        select.appendChild(option);
-    });
+        // FIX: stats updated once, after the loop
+        const avg = totalMovies === 0 ? 0 : totalRatingSum / totalMovies;
+        document.getElementById("avgRating").textContent = avg.toFixed(1);
+        document.getElementById("totalMovies").textContent = totalMovies;
 
-    applyRatingColors();
+        // Top director
+        const topDir = Object.entries(directorCount).sort((a, b) => b[1] - a[1])[0];
+        document.getElementById("topDirector").textContent = topDir
+            ? topDir[0].replace(/\b\w/g, l => l.toUpperCase())
+            : "—";
 
-    await addTMDbData();   // ⭐ wait for full data load
+        // destroy charts safely
+        if (window.ratingChart?.destroy) window.ratingChart.destroy();
+        if (window.genreChart?.destroy) window.genreChart.destroy();
+        if (window.directorChart?.destroy) window.directorChart.destroy();
 
-    updateMovieCount();
-    updateAdvancedDashboard(); // ⭐ now safe
-});
+        Chart.defaults.color = "#bdbdbd";
+        Chart.defaults.borderColor = "rgba(255,255,255,0.05)";
+        Chart.defaults.font.family = "Arial, sans-serif";
+        Chart.defaults.plugins.tooltip.cornerRadius = 8;
+        Chart.defaults.plugins.tooltip.padding = 10;
+
+        window.ratingChart = new Chart(document.getElementById('ratingChart'), {
+            type: 'bar',
+            data: {
+                labels: Object.keys(ratingBuckets),
+                datasets: [{
+                    data: Object.values(ratingBuckets),
+                    backgroundColor: ["#2e7d32","#1565c0","#42a5f5","#ffb300","#c62828"],
+                    borderRadius: 12,
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { backgroundColor: "#1e1e1e", borderColor: "#333", borderWidth: 1 }
+                },
+                scales: {
+                    x: { grid: { display: false }, ticks: { color: "#aaa" } },
+                    y: { grid: { color: "rgba(255,255,255,0.05)" }, ticks: { color: "#aaa", stepSize: 1 } }
+                }
+            }
+        });
+
+        const sortedGenres = Object.entries(genreCount).sort((a, b) => b[1] - a[1]);
+
+        window.genreChart = new Chart(document.getElementById('genreChart'), {
+            type: 'doughnut',
+            data: {
+                labels: sortedGenres.map(g => g[0]),
+                datasets: [{
+                    data: sortedGenres.map(g => g[1]),
+                    backgroundColor: ["#1565c0","#42a5f5","#2e7d32","#66bb6a","#ffb300","#ffa726","#ef6c00","#c62828"],
+                    borderWidth: 2,
+                    borderColor: "#121212",
+                    hoverOffset: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: "65%",
+                plugins: {
+                    legend: { position: "bottom", labels: { color: "#ccc", padding: 15, usePointStyle: true } },
+                    tooltip: { backgroundColor: "#1e1e1e", borderColor: "#333", borderWidth: 1 }
+                }
+            }
+        });
+
+        const topDirectors = Object.entries(directorCount).sort((a, b) => b[1] - a[1]).slice(0, 5);
+
+        window.directorChart = new Chart(document.getElementById('directorChart'), {
+            type: 'bar',
+            data: {
+                labels: topDirectors.map(d => d[0]),
+                datasets: [{
+                    data: topDirectors.map(d => d[1]),
+                    backgroundColor: "#42a5f5",
+                    borderRadius: 12,
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { backgroundColor: "#1e1e1e", borderColor: "#333", borderWidth: 1 }
+                },
+                scales: {
+                    x: { grid: { color: "rgba(255,255,255,0.05)" }, ticks: { color: "#aaa" } },
+                    y: { grid: { display: false }, ticks: { color: "#ccc" } }
+                }
+            }
+        });
     }
 
+    // FIX: DOMContentLoaded is now at the TOP LEVEL (not buried inside updateAdvancedDashboard)
+    window.addEventListener('DOMContentLoaded', async () => {
+        // Populate director dropdown
+        const select = document.getElementById('directorSelect');
+        const directorCounts = {};
+
+        document.querySelectorAll('.filmes').forEach(movie => {
+            if (!isRatedMovie(movie)) return; // FIX: exclude DNF from dropdown too
+            movie.querySelectorAll('.director').forEach(el => {
+                const d = el.dataset.director;
+                directorCounts[d] = (directorCounts[d] || 0) + 1;
+            });
+        });
+
+        Object.keys(directorCounts).sort().forEach(director => {
+            const option = document.createElement('option');
+            option.value = director;
+            option.textContent =
+                director.replace(/\b\w/g, l => l.toUpperCase()) +
+                ` (${directorCounts[director]})`;
+            select.appendChild(option);
+        });
+
+        applyRatingColors();
+
+        updateMovieCount();
+        updateAdvancedDashboard(); // FIX: called immediately so charts show on load
+
+        await addTMDbData(); // enriches data async; updates again when done
+    });
 </script>
 
         </body>
