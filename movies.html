@@ -657,7 +657,7 @@ DNF
 
     async function addTMDbData() {
         const movies = document.querySelectorAll('.filmes');
-        const apiKey = "YOUR_TMDB_KEY";
+        const apiKey = "28b378c47975b32d807fca8f2eb81e84";
 
         for (let movie of movies) {
             if (movie.dataset.loaded) continue;
@@ -727,7 +727,7 @@ DNF
 
             try {
                 const omdbRes = await fetch(
-                    `https://www.omdbapi.com/?i=${imdbID}&apikey=YOUR_OMDB_KEY`
+                    `https://www.omdbapi.com/?i=${imdbID}&apikey=e577f364`
                 );
                 const omdbData = await omdbRes.json();
                 const imdb = omdbData?.imdbRating || "N/A";
