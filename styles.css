@@ -354,3 +354,51 @@ canvas:hover {
         align-items: stretch;
     }
 }
+
+
+.contentor-watchlist {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.watchlist {
+    display: flex;
+    flex-direction: column;
+
+    gap: 10px;
+    padding: 14px;
+    margin: 12px 0;
+
+    background: #161616;
+    border-radius: 14px;
+
+    border: 1px solid rgba(255,255,255,0.05);
+
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.watchlist:hover {
+    transform: translateY(-3px);
+    background: #1c1c1c;
+}
+
+.watchlist h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #fff;
+}
+
+.watchlist p {
+    margin: 0;
+    color: #aaa;
+    font-size: 0.9rem;
+}
+
+.watchlist img {
+    width: 100%;
+    max-height: 320px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
