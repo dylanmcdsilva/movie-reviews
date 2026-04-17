@@ -380,7 +380,8 @@ canvas:hover {
 
 .contentor-watchlist {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(140px, 180px));
+justify-content: center;
     gap: 18px;
     padding: 30px 40px 50px;
     max-width: 1200px;
@@ -401,7 +402,9 @@ canvas:hover {
     flex-direction: unset;
     gap: unset;
     padding: 0;
-    margin: 0;
+    width: 100%;
+    max-width: 180px;
+    margin: 0 auto;
 }
 
 .watchlist:hover {
