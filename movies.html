@@ -827,18 +827,15 @@ DNF
     }
 
     async function addTMDbData() {
-        const movies = document.querySelectorAll('.filmes, .watchlist');
+        const movies = Array.from(document.querySelectorAll('.filmes, .watchlist'))
+            .filter(m => !m.dataset.loaded && m.getAttribute('data-imdb'));
         const apiKey = "28b378c47975b32d807fca8f2eb81e84";
+        const BATCH_SIZE = 10;
 
-        for (let movie of movies) {
-            if (movie.dataset.loaded) continue;
+        async function fetchMovieData(movie) {
             movie.dataset.loaded = "true";
-
             const imdbID = movie.getAttribute('data-imdb');
             const title = movie.querySelector("h3")?.innerText || "";
-
-            if (!imdbID) continue;
-
             let data = null;
 
             try {
@@ -859,59 +856,51 @@ DNF
                 if (!movieId) {
                     console.warn("No TMDb match:", title);
                     movie.style.opacity = "0.7";
-                    continue;
+                    return;
                 }
 
-                const detailsRes = await fetch(
-                    `https://api.themoviedb.org/3/movie/${movieId}?api_key=${apiKey}&append_to_response=credits`
-                );
+                const [detailsRes, omdbRes] = await Promise.all([
+                    fetch(`https://api.themoviedb.org/3/movie/${movieId}?api_key=${apiKey}&append_to_response=credits`),
+                    fetch(`https://www.omdbapi.com/?i=${imdbID}&apikey=e577f364`)
+                ]);
                 data = await detailsRes.json();
+                const omdbData = await omdbRes.json();
 
-            } catch (err) {
-                console.warn("TMDb failed for:", title, err);
-            }
-
-            try {
                 if (data?.poster_path) {
                     const img = document.createElement("img");
                     img.src = `https://image.tmdb.org/t/p/w500${data.poster_path}`;
                     img.loading = "lazy";
                     movie.prepend(img);
                 }
-            } catch {}
 
-            try {
                 if (data?.genres?.length) {
                     const genre = document.createElement("p");
                     genre.innerHTML = `🎭 ${data.genres.map(g => g.name).join(", ")}`;
                     movie.appendChild(genre);
                 }
-            } catch {}
 
-            try {
-                const actors = data?.credits?.cast
-                    ?.slice(0, 5)
-                    ?.map(a => a.name)
-                    ?.join(", ");
+                const actors = data?.credits?.cast?.slice(0, 5)?.map(a => a.name)?.join(", ");
                 if (actors) movie.dataset.actors = actors.toLowerCase();
-            } catch {}
 
-            try {
-                const omdbRes = await fetch(
-                    `https://www.omdbapi.com/?i=${imdbID}&apikey=e577f364`
-                );
-                const omdbData = await omdbRes.json();
                 const imdb = omdbData?.imdbRating || "N/A";
                 const rt = omdbData?.Ratings?.find(r => r.Source === "Rotten Tomatoes")?.Value || "N/A";
                 const row = document.createElement("p");
                 row.className = "rating-row";
                 row.innerHTML = `⭐ IMDb: ${imdb} | 🍅 RT: ${rt}`;
                 movie.appendChild(row);
-            } catch {}
+
+            } catch (err) {
+                console.warn("TMDb failed for:", title, err);
+            }
         }
 
-        updateMovieCount();
-        updateAdvancedDashboard();
+        // Process in parallel batches to avoid rate limiting
+        for (let i = 0; i < movies.length; i += BATCH_SIZE) {
+            const batch = movies.slice(i, i + BATCH_SIZE);
+            await Promise.all(batch.map(fetchMovieData));
+            updateMovieCount();
+            updateAdvancedDashboard();
+        }
     }
 
     // 🎨 APPLY COLORS
