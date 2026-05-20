@@ -41,6 +41,12 @@
     </div>
   </div>
 
+  <div class="chart-box">
+    <div class="chart-container">
+      <canvas id="decadeChart"></canvas>
+    </div>
+  </div>
+
 </div>
 <div id="movieCount">Movies: 0</div>
 
@@ -1278,6 +1284,7 @@ DNF
         let ratingBuckets = { "6-↓": 0, "7": 0, "8": 0, "9": 0, "10": 0 };
         let genreCount = {};
         let directorCount = {};
+        let decadeData = {}; // { "1970s": { count: 0, ratingSum: 0 }, ... }
         let totalRatingSum = 0;
         let totalMovies = 0;
 
@@ -1312,6 +1319,17 @@ DNF
                 const name = d.dataset.director;
                 directorCount[name] = (directorCount[name] || 0) + 1;
             });
+
+            // decade
+            const titleText = movie.querySelector('h3').innerText;
+            const yearMatch = titleText.match(/\((\d{4})\)/);
+            if (yearMatch) {
+                const year = parseInt(yearMatch[1]);
+                const decade = Math.floor(year / 10) * 10 + "s";
+                if (!decadeData[decade]) decadeData[decade] = { count: 0, ratingSum: 0 };
+                decadeData[decade].count++;
+                decadeData[decade].ratingSum += rating;
+            }
         });
 
         // FIX: stats updated once, after the loop
@@ -1329,6 +1347,7 @@ DNF
         if (window.ratingChart?.destroy) window.ratingChart.destroy();
         if (window.genreChart?.destroy) window.genreChart.destroy();
         if (window.directorChart?.destroy) window.directorChart.destroy();
+        if (window.decadeChart?.destroy) window.decadeChart.destroy();
 
         Chart.defaults.color = "#bdbdbd";
         Chart.defaults.borderColor = "rgba(255,255,255,0.05)";
@@ -1415,6 +1434,69 @@ DNF
                 scales: {
                     x: { grid: { color: "rgba(255,255,255,0.05)" }, ticks: { color: "#aaa" } },
                     y: { grid: { display: false }, ticks: { color: "#ccc" } }
+                }
+            }
+        });
+
+        // Decade chart
+        const sortedDecades = Object.keys(decadeData).sort();
+        const decadeCounts = sortedDecades.map(d => decadeData[d].count);
+        const decadeAvgRatings = sortedDecades.map(d =>
+            +(decadeData[d].ratingSum / decadeData[d].count).toFixed(2)
+        );
+
+        window.decadeChart = new Chart(document.getElementById('decadeChart'), {
+            type: 'bar',
+            data: {
+                labels: sortedDecades,
+                datasets: [
+                    {
+                        label: 'Movies',
+                        data: decadeCounts,
+                        backgroundColor: "#7e57c2",
+                        borderRadius: 8,
+                        borderSkipped: false,
+                        yAxisID: 'yCount'
+                    },
+                    {
+                        label: 'Avg Rating',
+                        data: decadeAvgRatings,
+                        type: 'line',
+                        borderColor: "#ffb300",
+                        backgroundColor: "rgba(255,179,0,0.15)",
+                        pointBackgroundColor: "#ffb300",
+                        pointRadius: 5,
+                        tension: 0.3,
+                        yAxisID: 'yRating'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: true, position: 'top', labels: { color: "#ccc", usePointStyle: true, padding: 16 } },
+                    tooltip: { backgroundColor: "#1e1e1e", borderColor: "#333", borderWidth: 1 },
+                    title: { display: true, text: 'Movies per Decade & Avg Rating', color: "#ccc", font: { size: 14 } }
+                },
+                scales: {
+                    x: { grid: { display: false }, ticks: { color: "#aaa" } },
+                    yCount: {
+                        type: 'linear',
+                        position: 'left',
+                        grid: { color: "rgba(255,255,255,0.05)" },
+                        ticks: { color: "#aaa", stepSize: 1 },
+                        title: { display: true, text: 'Movies', color: "#aaa" }
+                    },
+                    yRating: {
+                        type: 'linear',
+                        position: 'right',
+                        min: 0,
+                        max: 10,
+                        grid: { drawOnChartArea: false },
+                        ticks: { color: "#ffb300" },
+                        title: { display: true, text: 'Avg Rating', color: "#ffb300" }
+                    }
                 }
             }
         });
