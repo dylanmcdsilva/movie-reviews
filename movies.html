@@ -47,6 +47,18 @@
     </div>
   </div>
 
+  <div class="chart-box">
+    <div class="chart-container">
+      <canvas id="directorAvgChart"></canvas>
+    </div>
+  </div>
+
+  <div class="chart-box">
+    <div class="chart-container">
+      <canvas id="genreAvgChart"></canvas>
+    </div>
+  </div>
+
 </div>
 <div id="movieCount">Movies: 0</div>
 
@@ -1000,17 +1012,6 @@ DNF
 
 </div>
 
-<div class="filmes" data-imdb="tt0052357">
-
-<h3> Vertigo (1958)</h3>
-<div class="rating" data-rating="8">8</div>
-<p class="director" data-director="alfred hitchcock">
-  Director: Alfred Hitchcock</p>
-<p>Tinha um final em mente e estava prestes a dar ao filme um 9 mas aquele "jump scare" e morte subida estragou um pouco o final, de qualquer maneira a obsessão é tratada de forma excelente e o filme é cativante do ínicio ao fim</p>
-<p>Last seen: May 2026</p>
-
-</div>
-
 
 </div>
 
@@ -1057,6 +1058,9 @@ DNF
   </div>
     <div class="watchlist" data-imdb="tt0033467"> 
     <h3>Citizen Kane (1941)</h3>
+  </div>
+ <div class="watchlist" data-imdb="tt0052357"> 
+    <h3>Vertigo (1958)</h3>
   </div>
 <div class="watchlist" data-imdb="tt0113247"> 
     <h3>La haine (1995)</h3>
@@ -1293,6 +1297,8 @@ DNF
         let genreCount = {};
         let directorCount = {};
         let decadeData = {}; // { "1970s": { count: 0, ratingSum: 0 }, ... }
+        let directorRatings = {}; // { "martin scorsese": { count: 0, ratingSum: 0 }, ... }
+        let genreRatings = {}; // { "Crime": { count: 0, ratingSum: 0 }, ... }
         let totalRatingSum = 0;
         let totalMovies = 0;
 
@@ -1317,7 +1323,12 @@ DNF
                 if (p.innerText.startsWith("🎭")) {
                     p.innerText.replace("🎭", "").split(",").forEach(g => {
                         const clean = g.trim();
-                        if (clean) genreCount[clean] = (genreCount[clean] || 0) + 1;
+                        if (clean) {
+                            genreCount[clean] = (genreCount[clean] || 0) + 1;
+                            if (!genreRatings[clean]) genreRatings[clean] = { count: 0, ratingSum: 0 };
+                            genreRatings[clean].count++;
+                            genreRatings[clean].ratingSum += rating;
+                        }
                     });
                 }
             });
@@ -1326,6 +1337,9 @@ DNF
             movie.querySelectorAll('.director').forEach(d => {
                 const name = d.dataset.director;
                 directorCount[name] = (directorCount[name] || 0) + 1;
+                if (!directorRatings[name]) directorRatings[name] = { count: 0, ratingSum: 0 };
+                directorRatings[name].count++;
+                directorRatings[name].ratingSum += rating;
             });
 
             // decade
@@ -1356,6 +1370,8 @@ DNF
         if (window.genreChart?.destroy) window.genreChart.destroy();
         if (window.directorChart?.destroy) window.directorChart.destroy();
         if (window.decadeChart?.destroy) window.decadeChart.destroy();
+        if (window.directorAvgChart?.destroy) window.directorAvgChart.destroy();
+        if (window.genreAvgChart?.destroy) window.genreAvgChart.destroy();
 
         Chart.defaults.color = "#bdbdbd";
         Chart.defaults.borderColor = "rgba(255,255,255,0.05)";
@@ -1504,6 +1520,105 @@ DNF
                         grid: { drawOnChartArea: false },
                         ticks: { color: "#ffb300" },
                         title: { display: true, text: 'Avg Rating', color: "#ffb300" }
+                    }
+                }
+            }
+        });
+
+        // Director average rating chart (min 2 movies, sorted by avg desc)
+        const dirAvgEntries = Object.entries(directorRatings)
+            .filter(([, v]) => v.count >= 2)
+            .map(([name, v]) => ({ name: name.replace(/\b\w/g, l => l.toUpperCase()), avg: +(v.ratingSum / v.count).toFixed(2) }))
+            .sort((a, b) => b.avg - a.avg);
+
+        const dirAvgFinal = dirAvgEntries.length >= 2
+            ? dirAvgEntries
+            : Object.entries(directorRatings)
+                .map(([name, v]) => ({ name: name.replace(/\b\w/g, l => l.toUpperCase()), avg: +(v.ratingSum / v.count).toFixed(2) }))
+                .sort((a, b) => b.avg - a.avg);
+
+        const dirAvgColors = dirAvgFinal.map(d => {
+            if (d.avg >= 9) return "#2e7d32";
+            if (d.avg >= 8) return "#1565c0";
+            if (d.avg >= 7) return "#ef6c00";
+            return "#c62828";
+        });
+
+        window.directorAvgChart = new Chart(document.getElementById('directorAvgChart'), {
+            type: 'bar',
+            data: {
+                labels: dirAvgFinal.map(d => d.name),
+                datasets: [{
+                    label: 'Avg Rating',
+                    data: dirAvgFinal.map(d => d.avg),
+                    backgroundColor: dirAvgColors,
+                    borderRadius: 10,
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { backgroundColor: "#1e1e1e", borderColor: "#333", borderWidth: 1 },
+                    title: { display: true, text: 'Director Average Rating (2+ films)', color: "#ccc", font: { size: 14 } }
+                },
+                scales: {
+                    x: {
+                        min: 5, max: 10,
+                        grid: { color: "rgba(255,255,255,0.05)" },
+                        ticks: { color: "#aaa" }
+                    },
+                    y: { grid: { display: false }, ticks: { color: "#ccc" } }
+                }
+            }
+        });
+
+        // Genre average rating chart
+        const genreAvgEntries = Object.entries(genreRatings)
+            .map(([name, v]) => ({ name, avg: +(v.ratingSum / v.count).toFixed(2), count: v.count }))
+            .sort((a, b) => b.avg - a.avg);
+
+        const genreAvgColors = genreAvgEntries.map(g => {
+            if (g.avg >= 9) return "#2e7d32";
+            if (g.avg >= 8) return "#1565c0";
+            if (g.avg >= 7) return "#ef6c00";
+            return "#c62828";
+        });
+
+        window.genreAvgChart = new Chart(document.getElementById('genreAvgChart'), {
+            type: 'bar',
+            data: {
+                labels: genreAvgEntries.map(g => g.name),
+                datasets: [{
+                    label: 'Avg Rating',
+                    data: genreAvgEntries.map(g => g.avg),
+                    backgroundColor: genreAvgColors,
+                    borderRadius: 10,
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: "#1e1e1e", borderColor: "#333", borderWidth: 1,
+                        callbacks: {
+                            afterLabel: ctx => `${genreAvgEntries[ctx.dataIndex].count} film(s)`
+                        }
+                    },
+                    title: { display: true, text: 'Genre Average Rating', color: "#ccc", font: { size: 14 } }
+                },
+                scales: {
+                    x: { grid: { display: false }, ticks: { color: "#aaa" } },
+                    y: {
+                        min: 5, max: 10,
+                        grid: { color: "rgba(255,255,255,0.05)" },
+                        ticks: { color: "#aaa" }
                     }
                 }
             }
