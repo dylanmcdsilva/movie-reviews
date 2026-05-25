@@ -64,6 +64,445 @@
 </div>
 <div id="movieCount">Movies: 0</div>
 
+<!-- ===== LIST TRACKERS ===== -->
+<div id="listTrackers" style="
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin: 32px auto;
+  max-width: 1300px;
+  padding: 0 16px;
+">
+
+  <!-- IMDb Top 250 -->
+  <div class="list-tracker-box">
+    <div class="list-tracker-header">
+      <span class="list-tracker-logo" style="color:#f5c518;">⭐ IMDb</span>
+      <span class="list-tracker-title">Top 250</span>
+      <span class="list-tracker-pct" id="imdbPct">—</span>
+    </div>
+    <div class="list-tracker-bar-wrap"><div class="list-tracker-bar" id="imdbBar"></div></div>
+    <div style="overflow-y:auto; max-height:340px; margin-top:10px;">
+      <ul class="list-tracker-ul" id="imdbList"></ul>
+    </div>
+  </div>
+
+  <div class="list-tracker-box">
+    <div class="list-tracker-header">
+      <span class="list-tracker-logo" style="color:#c0392b;">🎬 BFI</span>
+      <span class="list-tracker-title">Sight & Sound Top 250</span>
+      <span class="list-tracker-pct" id="afiPct">—</span>
+    </div>
+    <div class="list-tracker-bar-wrap"><div class="list-tracker-bar" id="afiBar"></div></div>
+    <div style="overflow-y:auto; max-height:340px; margin-top:10px;">
+      <ul class="list-tracker-ul" id="afiList"></ul>
+    </div>
+  </div>
+
+  <!-- Letterboxd Top 250 -->
+  <div class="list-tracker-box">
+    <div class="list-tracker-header">
+      <span class="list-tracker-logo" style="color:#00b020;">🎞 Letterboxd</span>
+      <span class="list-tracker-title">Top 250</span>
+      <span class="list-tracker-pct" id="lbPct">—</span>
+    </div>
+    <div class="list-tracker-bar-wrap"><div class="list-tracker-bar" id="lbBar"></div></div>
+    <div style="overflow-y:auto; max-height:340px; margin-top:10px;">
+      <ul class="list-tracker-ul" id="lbList"></ul>
+    </div>
+  </div>
+
+</div>
+
+<style>
+.list-tracker-box {
+  flex: 1;
+  min-width: 280px;
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 14px;
+  padding: 18px 16px;
+}
+.list-tracker-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.list-tracker-logo { font-size: 1.1rem; font-weight: 700; }
+.list-tracker-title { font-size: 0.95rem; color: #aaa; flex: 1; }
+.list-tracker-pct {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  background: #2a2a2a;
+  padding: 2px 10px;
+  border-radius: 20px;
+}
+.list-tracker-bar-wrap {
+  width: 100%;
+  height: 6px;
+  background: #2a2a2a;
+  border-radius: 99px;
+  overflow: hidden;
+}
+.list-tracker-bar {
+  height: 100%;
+  border-radius: 99px;
+  width: 0%;
+  transition: width 0.6s ease;
+  background: linear-gradient(90deg, #4a90d9, #a855f7);
+}
+.list-tracker-ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.list-tracker-ul li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 4px;
+  border-bottom: 1px solid #222;
+  font-size: 0.82rem;
+  color: #bbb;
+}
+.list-tracker-ul li:last-child { border-bottom: none; }
+.list-tracker-ul li.watched { color: #fff; }
+.list-tracker-ul li .rank {
+  min-width: 28px;
+  color: #555;
+  font-size: 0.75rem;
+  text-align: right;
+}
+.list-tracker-ul li .check {
+  font-size: 0.85rem;
+  min-width: 16px;
+  text-align: center;
+}
+.list-tracker-ul li.watched .check { color: #4ade80; }
+.list-tracker-ul li:not(.watched) .check { color: #333; }
+</style>
+
+<script>
+// ── Normalise title for fuzzy matching ──────────────────────────────────────
+function norm(s) {
+  return s.toLowerCase()
+    .replace(/^(the |a |an )/,'')
+    .replace(/[^a-z0-9]/g,' ')
+    .replace(/\s+/g,' ')
+    .trim();
+}
+
+// ── IMDb Top 250 ────────────────────────────────────────────────────────────
+const imdbTop250 = [
+  [1,"The Shawshank Redemption",1994],[2,"The Godfather",1972],[3,"The Dark Knight",2008],
+  [4,"The Godfather Part II",1974],[5,"12 Angry Men",1957],[6,"Schindler's List",1993],
+  [7,"The Lord of the Rings: The Return of the King",2003],[8,"Pulp Fiction",1994],
+  [9,"The Lord of the Rings: The Fellowship of the Ring",2001],[10,"The Good, the Bad and the Ugly",1966],
+  [11,"Forrest Gump",1994],[12,"Fight Club",1999],[13,"Inception",2010],
+  [14,"The Lord of the Rings: The Two Towers",2002],[15,"The Matrix",1999],
+  [16,"Goodfellas",1990],[17,"Star Wars: Episode V",1980],[18,"One Flew Over the Cuckoo's Nest",1975],
+  [19,"Interstellar",2014],[20,"Parasite",2019],[21,"Saving Private Ryan",1998],
+  [22,"The Silence of the Lambs",1991],[23,"City of God",2002],[24,"Life Is Beautiful",1997],
+  [25,"The Green Mile",1999],[26,"Se7en",1995],[27,"It's a Wonderful Life",1946],
+  [28,"Star Wars: Episode IV",1977],[29,"Spirited Away",2001],[30,"Hara-Kiri",1962],
+  [31,"Whiplash",2014],[32,"The Prestige",2006],[33,"The Lion King",1994],
+  [34,"Grave of the Fireflies",1988],[35,"Back to the Future",1985],
+  [36,"The Pianist",2002],[37,"Léon: The Professional",1994],[38,"American History X",1998],
+  [39,"Terminator 2",1991],[40,"Gladiator",2000],[41,"Coco",2017],[42,"The Departed",2006],
+  [43,"Casablanca",1942],[44,"Apocalypse Now",1979],[45,"The Usual Suspects",1995],
+  [46,"Rear Window",1954],[47,"Cinema Paradiso",1988],[48,"Memento",2000],
+  [49,"Raiders of the Lost Ark",1981],[50,"Django Unchained",2012],
+  [51,"The Great Dictator",1940],[52,"Psycho",1960],[53,"Sunset Boulevard",1950],
+  [54,"WALL·E",2008],[55,"Paths of Glory",1957],[56,"The Shining",1980],
+  [57,"Dr. Strangelove",1964],[58,"Princess Mononoke",1997],[59,"Alien",1979],
+  [60,"Oldboy",2003],[61,"City Lights",1931],[62,"Avengers: Endgame",2019],
+  [63,"Witness for the Prosecution",1957],[64,"Come and See",1985],[65,"Once Upon a Time in the West",1968],
+  [66,"American Beauty",1999],[67,"Braveheart",1995],[68,"Amadeus",1984],
+  [69,"Toy Story",1995],[70,"Joker",2019],[71,"Taxi Driver",1976],[72,"Das Boot",1981],
+  [73,"High and Low",1963],[74,"2001: A Space Odyssey",1968],[75,"A Clockwork Orange",1971],
+  [76,"Singin' in the Rain",1952],[77,"Requiem for a Dream",2000],[78,"Toy Story 3",2010],
+  [79,"Lawrence of Arabia",1962],[80,"Double Indemnity",1944],[81,"To Kill a Mockingbird",1962],
+  [82,"Full Metal Jacket",1987],[83,"Eternal Sunshine of the Spotless Mind",2004],
+  [84,"The Kid",1921],[85,"Indiana Jones and the Last Crusade",1989],
+  [86,"Reservoir Dogs",1992],[87,"Vertigo",1958],[88,"M",1931],
+  [89,"1917",2019],[90,"North by Northwest",1959],[91,"There Will Be Blood",2007],
+  [92,"The Hunt",2012],[93,"A Beautiful Mind",2001],[94,"Snatch",2000],
+  [95,"3 Idiots",2009],[96,"Scarface",1983],[97,"Bicycle Thieves",1948],
+  [98,"The Apartment",1960],[99,"Inglourious Basterds",2009],[100,"Yojimbo",1961],
+  [101,"Capernaum",2018],[102,"Up",2009],[103,"The Handmaiden",2016],
+  [104,"Heat",1995],[105,"L.A. Confidential",1997],[106,"Shutter Island",2010],
+  [107,"Monty Python and the Holy Grail",1975],[108,"Ran",1985],[109,"Ikiru",1952],
+  [110,"Unforgiven",1992],[111,"The Wolf of Wall Street",2013],[112,"My Neighbor Totoro",1988],
+  [113,"Good Will Hunting",1997],[114,"The Seventh Seal",1957],[115,"Burning",2018],
+  [116,"Anora",2024],[117,"Judgment at Nuremberg",1961],[118,"Catch Me If You Can",2002],
+  [119,"Gone with the Wind",1939],[120,"The Grand Budapest Hotel",2014],
+  [121,"Mr. Turner",2014],[122,"No Country for Old Men",2007],[123,"La La Land",2016],
+  [124,"Pan's Labyrinth",2006],[125,"Wild Strawberries",1957],[126,"The Dark Knight Rises",2012],
+  [127,"Oppenheimer",2023],[128,"Barry Lyndon",1975],[129,"Spotlight",2015],
+  [130,"Hacksaw Ridge",2016],[131,"The Intouchables",2011],[132,"Modern Times",1936],
+  [133,"Some Like It Hot",1959],[134,"Metropolis",1927],[135,"In the Name of the Father",1993],
+  [136,"Monsters, Inc.",2001],[137,"Fargo",1996],[138,"Lock, Stock and Two Smoking Barrels",1998],
+  [139,"Stalker",1979],[140,"A Separation",2011],[141,"Relatos Salvajes",2014],
+  [142,"The Treasure of the Sierra Madre",1948],[143,"Room",2015],[144,"Harry Potter and the Deathly Hallows",2011],
+  [145,"Andrei Rublev",1966],[146,"Chinatown",1974],[147,"The Bridge on the River Kwai",1957],
+  [148,"All About Eve",1950],[149,"Dune: Part Two",2024],[150,"Blue Velvet",1986],
+  [151,"How to Train Your Dragon",2010],[152,"Portrait of a Lady on Fire",2019],
+  [153,"Kill Bill: Volume 1",2003],[154,"My Brilliant Friend",2018],
+  [155,"La Haine",1995],[156,"Persona",1966],[157,"Mulholland Drive",2001],
+  [158,"RoboCop",1987],[159,"Network",1976],[160,"Blade Runner",1982],
+  [161,"The General",1926],[162,"Drishyam",2013],[163,"Miller's Crossing",1990],
+  [164,"Before Sunrise",1995],[165,"In the Mood for Love",2000],[166,"Seven Samurai",1954],
+  [167,"Tokyo Story",1953],[168,"Prisoners",2013],[169,"Dune: Part One",2021],
+  [170,"Mary and Max",2009],[171,"Drive",2011],[172,"Incendies",2010],
+  [173,"Green Book",2018],[174,"Three Billboards Outside Ebbing, Missouri",2017],
+  [175,"Into the Wild",2007],[176,"Arrival",2016],[177,"The Father",2020],
+  [178,"Platoon",1986],[179,"Knives Out",2019],[180,"Children of Heaven",1997],
+  [181,"Spider-Man: Into the Spider-Verse",2018],[182,"Logan",2017],
+  [183,"Ran",1985],[184,"The Thing",1982],[185,"12 Years a Slave",2013],
+  [186,"Do the Right Thing",1989],[187,"Dunkirk",2017],[188,"Her",2013],
+  [189,"Boogie Nights",1997],[190,"Synecdoche, New York",2008],
+  [191,"Chungking Express",1994],[192,"Trainspotting",1996],[193,"On the Waterfront",1954],
+  [194,"Nightcrawler",2014],[195,"Midnight Cowboy",1969],[196,"Paris, Texas",1984],
+  [197,"Lost in Translation",2003],[198,"Stand by Me",1986],[199,"The Social Network",2010],
+  [200,"Zodiac",2007],[201,"The Lobster",2015],[202,"Blade Runner 2049",2017],
+  [203,"Eyes Wide Shut",1999],[204,"Jackie Brown",1997],[205,"Jaws",1975],
+  [206,"The Truman Show",1998],[207,"The Big Lebowski",1998],[208,"Citizen Kane",1941],
+  [209,"The Hurt Locker",2008],[210,"Punch-Drunk Love",2002],[211,"A Man Escaped",1956],
+  [212,"Before Sunset",2004],[213,"Lady Bird",2017],[214,"Moon",2009],
+  [215,"Belfast",2021],[216,"Promising Young Woman",2020],[217,"Boyz n the Hood",1991],
+  [218,"Adaptation.",2002],[219,"Neon Genesis Evangelion",1995],[220,"Poor Things",2023],
+  [221,"Fallen Angels",1995],[222,"Sound of Metal",2019],[223,"Before Midnight",2013],
+  [224,"A Ghost Story",2017],[225,"Brief Encounter",1945],[226,"In Bruges",2008],
+  [227,"Hereditary",2018],[228,"The Nice Guys",2016],[229,"The Lighthouse",2019],
+  [230,"Portrait of a Lady on Fire",2019],[231,"Certified Copy",2010],
+  [232,"(500) Days of Summer",2009],[233,"Black Swan",2010],[234,"Pig",2021],
+  [235,"The Zone of Interest",2023],[236,"Aftersun",2022],[237,"Saltburn",2023],
+  [238,"Scott Pilgrim vs. the World",2010],[239,"Annihilation",2018],[240,"Short Term 12",2013],
+  [241,"Burning",2018],[242,"Tangerines",2013],[243,"Shoplifters",2018],
+  [244,"The Favourite",2018],[245,"Phantom Thread",2017],[246,"Good Time",2017],
+  [247,"The Florida Project",2017],[248,"La La Land",2016],[249,"Toni Erdmann",2016],
+  [250,"American Psycho",2000]
+];
+
+// ── BFI Sight & Sound Top 250 (2022) ────────────────────────────────────────
+const afiTop100 = [
+  [1,"Jeanne Dielman, 23 quai du Commerce, 1080 Bruxelles",1975],
+  [2,"Vertigo",1958],[3,"Citizen Kane",1941],[4,"Tokyo Story",1953],
+  [5,"In the Mood for Love",2000],[6,"2001: A Space Odyssey",1968],
+  [7,"Beau Travail",1999],[8,"Mulholland Drive",2001],
+  [9,"Man with a Movie Camera",1929],[10,"Singin' in the Rain",1952],
+  [11,"Late Spring",1949],[12,"The Godfather",1972],
+  [13,"Sunrise: A Song of Two Humans",1927],[14,"La Règle du jeu",1939],
+  [15,"Meshes of the Afternoon",1943],[16,"Sansho the Bailiff",1954],
+  [17,"Close-Up",1990],[18,"Persona",1966],[19,"Mirror",1975],
+  [20,"Bicycle Thieves",1948],[21,"Apocalypse Now",1979],[22,"Rear Window",1954],
+  [23,"Stalker",1979],[24,"Seven Samurai",1954],[25,"The Passion of Joan of Arc",1928],
+  [26,"Au Hasard Balthazar",1966],[27,"Taxi Driver",1976],[28,"Pather Panchali",1955],
+  [29,"L'Atalante",1934],[30,"Portrait of a Lady on Fire",2019],
+  [31,"Andrei Rublev",1966],[32,"Pierrot le fou",1965],[33,"City Lights",1931],
+  [34,"Some Like It Hot",1959],[35,"Ordet",1955],[36,"Rashomon",1950],
+  [37,"Psycho",1960],[38,"The 400 Blows",1959],[39,"La Dolce Vita",1960],
+  [40,"Journey to Italy",1954],[41,"8½",1963],[42,"Touki Bouki",1973],
+  [43,"Ugetsu",1953],[44,"Greed",1924],[45,"A Man Escaped",1956],
+  [46,"All About Eve",1950],[47,"Chinatown",1974],[48,"Chungking Express",1994],
+  [49,"Vivre Sa Vie",1962],[50,"Sunrise",1927],[51,"Come and See",1985],
+  [52,"The Apartment",1960],[53,"Contempt",1963],[54,"Play Time",1967],
+  [55,"A Brighter Summer Day",1991],[56,"Shoah",1985],[57,"Pickpocket",1959],
+  [58,"Sans Soleil",1983],[59,"India Song",1975],[60,"Umberto D.",1952],
+  [61,"Moonlight",2016],[62,"Do the Right Thing",1989],[63,"Certified Copy",2010],
+  [64,"Elevator to the Gallows",1958],[65,"Sullivan's Travels",1941],
+  [66,"The Searchers",1956],[67,"Barry Lyndon",1975],[68,"Cleo from 5 to 7",1962],
+  [69,"Once Upon a Time in the West",1968],[70,"Rio Bravo",1959],
+  [71,"Metropolis",1927],[72,"Ashes of Time",1994],[73,"Brokeback Mountain",2005],
+  [74,"The General",1926],[75,"The Battle of Algiers",1966],
+  [76,"F for Fake",1973],[77,"Daughters of the Dust",1991],
+  [78,"Letter from an Unknown Woman",1948],[79,"His Girl Friday",1940],
+  [80,"Wanda",1970],[81,"Throne of Blood",1957],[82,"The Mother",1926],
+  [83,"Scenes from a Marriage",1973],[84,"The Spirit of the Beehive",1973],
+  [85,"In a Lonely Place",1950],[86,"Ivan the Terrible",1944],
+  [87,"Germany Year Zero",1948],[88,"Imitation of Life",1959],
+  [89,"Modern Times",1936],[90,"Flowers of Shanghai",1998],
+  [91,"Black Girl",1966],[92,"Camille",1936],[93,"The Crowd",1928],
+  [94,"Killer of Sheep",1978],[95,"A City of Sadness",1989],
+  [96,"Senso",1954],[97,"Ali: Fear Eats the Soul",1974],
+  [98,"Cache",2005],[99,"El Sur",1983],[100,"Faces",1968],
+  [101,"Vagabond",1985],[102,"McCabe & Mrs. Miller",1971],
+  [103,"Casablanca",1942],[104,"Memories of Underdevelopment",1968],
+  [105,"The Piano",1993],[106,"Titicut Follies",1967],
+  [107,"News from Home",1977],[108,"Goodbye Dragon Inn",2003],
+  [108,"The Godfather Part II",1974],[108,"Touch of Evil",1958],
+  [108,"Bande à part",1964],[112,"La Grande Illusion",1937],
+  [112,"Nashville",1975],[114,"Daisies",1966],
+  [114,"I Am Cuba",1964],[116,"Harakiri",1962],
+  [116,"The Red Shoes",1948],[118,"The Thing",1982],
+  [118,"Yi Yi",2000],[118,"Parasite",2019],
+  [121,"Satantango",1994],[122,"The Matrix",1999],
+  [122,"There Will Be Blood",2007],[124,"Ikiru",1952],
+  [124,"Sherlock Jr.",1924],[126,"The Conformist",1970],
+  [126,"Rocco and His Brothers",1960],[128,"The Bitter Tears of Petra von Kant",1972],
+  [129,"Pulp Fiction",1994],[129,"Raging Bull",1980],
+  [131,"Tropical Malady",2004],[132,"M",1931],
+  [132,"The Shining",1980],[134,"La Jetée",1962],
+  [134,"The Night of the Hunter",1955],[136,"Dr. Strangelove",1964],
+  [136,"Gertrud",1964],[136,"Pickpocket",1959],
+  [139,"Landscape in the Mist",1988],[140,"Blade Runner",1982],
+  [140,"Lawrence of Arabia",1962],[142,"Wild Strawberries",1957],
+  [142,"Hunger",2008],[144,"Apocalypse Now: Redux",1979],
+  [144,"A Separation",2011],[146,"Chinatown",1974],
+  [146,"La Grande Illusion",1937],[148,"Elena",2011],
+  [148,"Synecdoche, New York",2008],[150,"Lost in Translation",2003],
+  [150,"The Headless Woman",2008],[152,"Twin Peaks: The Return",2017],
+  [152,"Mishima: A Life in Four Chapters",1985],
+  [154,"Sweet Sweetback's Baad Asssss Song",1971],
+  [154,"My Brilliant Career",1979],[156,"Jeanne Dielman",1975],
+  [156,"The Earrings of Madame de...",1953],[158,"Cameraperson",2016],
+  [158,"Tropical Malady",2004],[160,"Fallen Angels",1995],
+  [160,"Grey Gardens",1975],[162,"My Neighbor Totoro",1988],
+  [162,"Last Year at Marienbad",1961],[164,"Touki Bouki",1973],
+  [164,"Chantal Akerman by Chantal Akerman",1996],
+  [166,"Platform",2000],[166,"The Long Day Closes",1992],
+  [166,"Jeanne Dielman",1975],[169,"Heat",1995],
+  [169,"Under the Skin",2013],[169,"Dead Ringers",1988],
+  [172,"Wavelength",1967],[172,"Le Mépris",1963],
+  [174,"All That Heaven Allows",1955],[174,"Celine and Julie Go Boating",1974],
+  [176,"Mirror",1975],[176,"Sátántangó",1994],
+  [178,"The Gleaners and I",2000],[178,"Koyaanisqatsi",1982],
+  [180,"Caché",2005],[180,"My Dinner with Andre",1981],
+  [182,"Sherlock Jr.",1924],[182,"The Wild Bunch",1969],
+  [184,"His Girl Friday",1940],[184,"Orlando",1992],
+  [185,"Magnolia",1999],[185,"Sambizanga",1972],
+  [187,"Watermelon Woman",1996],[187,"West Indies",1979],
+  [189,"Paris is Burning",1990],[189,"The Awful Truth",1937],
+  [191,"Safe",1995],[191,"Dune",2021],
+  [193,"Midnight Cowboy",1969],[193,"Point Blank",1967],
+  [195,"Scenes from a Marriage",1973],[196,"Zama",2017],
+  [196,"Mad Max: Fury Road",2015],[196,"The Tree of Life",2011],
+  [196,"Uncle Boonmee Who Can Recall His Past Lives",2010],
+  [196,"The Headless Woman",2008],[201,"Paris, Texas",1984],
+  [201,"Tangerine",2015],[203,"The Fits",2015],
+  [203,"Jeanne Dielman",1975],[205,"Portrait of a Lady on Fire",2019],
+  [205,"Moonlight",2016],[207,"Never Rarely Sometimes Always",2020],
+  [207,"Mouchette",1967],[209,"La Haine",1995],
+  [209,"Annie Hall",1977],[211,"Melancholia",2011],
+  [211,"Uncle Boonmee",2010],[213,"Memories of Murder",2003],
+  [213,"Yi Yi",2000],[215,"Stalker",1979],
+  [215,"Persona",1966],[217,"A Taste of Cherry",1997],
+  [217,"Late Spring",1949],[219,"Vertigo",1958],
+  [219,"Chungking Express",1994],[221,"In the Mood for Love",2000],
+  [221,"The 400 Blows",1959],[223,"Los Olvidados",1950],
+  [223,"Come and See",1985],[225,"Petite Maman",2021],
+  [225,"Jeanne Dielman",1975],[227,"Shoah",1985],
+  [227,"Tropical Malady",2004],[229,"The Piano",1993],
+  [229,"Beau Travail",1999],[231,"Ugetsu",1953],
+  [231,"Faces",1968],[233,"Ashes of Time",1994],
+  [233,"City Lights",1931],[235,"The Conformist",1970],
+  [235,"Close-Up",1990],[237,"Au Hasard Balthazar",1966],
+  [237,"Pather Panchali",1955],[239,"Seven Samurai",1954],
+  [239,"Apocalypse Now",1979],[241,"Rear Window",1954],
+  [241,"Taxi Driver",1976],[243,"Nostalgia for Light",2010],
+  [243,"Syndromes and a Century",2006],[243,"Annie Hall",1977],
+  [246,"A Man Escaped",1956],[246,"Pickpocket",1959],
+  [248,"The Bitter Tears of Petra von Kant",1972],
+  [248,"Scenes from a Marriage",1973],[250,"Mulholland Drive",2001]
+];
+
+// ── Letterboxd Top 250 ───────────────────────────────────────────────────────
+const lbTop250 = [
+  [1,"Jeanne Dielman",1975],[2,"Mulholland Drive",2001],[3,"2001: A Space Odyssey",1968],
+  [4,"In the Mood for Love",2000],[5,"There Will Be Blood",2007],[6,"The Tree of Life",2011],
+  [7,"Stalker",1979],[8,"Apocalypse Now",1979],[9,"Mirror",1975],[10,"Persona",1966],
+  [11,"Vertigo",1958],[12,"Come and See",1985],[13,"Andrei Rublev",1966],
+  [14,"Synecdoche, New York",2008],[15,"Satantango",1994],[16,"Chungking Express",1994],
+  [17,"Certified Copy",2010],[18,"Sans Soleil",1983],[19,"A Brighter Summer Day",1991],
+  [20,"The Godfather",1972],[21,"Paths of Glory",1957],[22,"Tokyo Story",1953],
+  [23,"Rear Window",1954],[24,"Parasite",2019],[25,"Eternal Sunshine of the Spotless Mind",2004],
+  [26,"Portrait of a Lady on Fire",2019],[27,"Taxi Driver",1976],[28,"The Godfather Part II",1974],
+  [29,"Seven Samurai",1954],[30,"Before Sunrise",1995],[31,"Pulp Fiction",1994],
+  [32,"City of God",2002],[33,"Dr. Strangelove",1964],[34,"Citizen Kane",1941],
+  [35,"Paris, Texas",1984],[36,"The Shining",1980],[37,"Once Upon a Time in the West",1968],
+  [38,"12 Angry Men",1957],[39,"A Clockwork Orange",1971],[40,"Blue Velvet",1986],
+  [41,"Schindler's List",1993],[42,"Blade Runner",1982],[43,"Wild Strawberries",1957],
+  [44,"Before Sunset",2004],[45,"La Haine",1995],[46,"Oldboy",2003],
+  [47,"The Seventh Seal",1957],[48,"The Dark Knight",2008],[49,"No Country for Old Men",2007],
+  [50,"The Hunt",2012],[51,"The Social Network",2010],[52,"Whiplash",2014],
+  [53,"Fallen Angels",1995],[54,"Lost in Translation",2003],[55,"Requiem for a Dream",2000],
+  [56,"Goodfellas",1990],[57,"Fight Club",1999],[58,"Cinema Paradiso",1988],
+  [59,"Mulholland Drive",2001],[60,"Fargo",1996],[61,"Her",2013],[62,"Inception",2010],
+  [63,"The Matrix",1999],[64,"Psycho",1960],[65,"Eyes Wide Shut",1999],
+  [66,"Boogie Nights",1997],[67,"Reservoir Dogs",1992],[68,"Punch-Drunk Love",2002],
+  [69,"Do the Right Thing",1989],[70,"The Handmaiden",2016],[71,"Drive",2011],
+  [72,"In Bruges",2008],[73,"The Truman Show",1998],[74,"Sound of Metal",2019],
+  [75,"Trainspotting",1996],[76,"Zodiac",2007],[77,"Jackie Brown",1997],
+  [78,"Memento",2000],[79,"Three Billboards Outside Ebbing, Missouri",2017],
+  [80,"The Thing",1982],[81,"Stand by Me",1986],[82,"One Flew Over the Cuckoo's Nest",1975],
+  [83,"Good Will Hunting",1997],[84,"Jaws",1975],[85,"Before Midnight",2013],
+  [86,"Spider-Man: Into the Spider-Verse",2018],[87,"The Big Lebowski",1998],
+  [88,"American Beauty",1999],[89,"Interstellar",2014],[90,"Lady Bird",2017],
+  [91,"Oppenheimer",2023],[92,"Poor Things",2023],[93,"The Lobster",2015],
+  [94,"Scarface",1983],[95,"Shutter Island",2010],[96,"Black Swan",2010],
+  [97,"(500) Days of Summer",2009],[98,"Scott Pilgrim vs. the World",2010],
+  [99,"La La Land",2016],[100,"The Pianist",2002],[101,"Gone Girl",2014],
+  [102,"Saltburn",2023],[103,"The Social Network",2010],[104,"Saving Private Ryan",1998],
+  [105,"The Nice Guys",2016],[106,"It's a Wonderful Life",1946],[107,"American Psycho",2000],
+  [108,"The Usual Suspects",1995],[109,"Catch Me If You Can",2002],[110,"The Departed",2006],
+  [111,"Seven",1995],[112,"The Bridge on the River Kwai",1957],[113,"Snatch",2000],
+  [114,"Amadeus",1984],[115,"Brief Encounter",1945],[116,"Modern Times",1936],
+  [117,"City Lights",1931],[118,"Léon: The Professional",1994],[119,"American Gangster",2007],
+  [120,"Wolf of Wall Street",2013],[121,"No Country for Old Men",2007],[122,"Dune: Part One",2021],
+  [123,"Dune: Part Two",2024],[124,"Anora",2024],[125,"Spider-Man: Across the Spider-Verse",2023]
+];
+
+// ── Build watched set from movie cards ──────────────────────────────────────
+function buildWatchedSet() {
+  const watched = new Set();
+  document.querySelectorAll('.movie').forEach(m => {
+    const h3 = m.querySelector('h3');
+    if (!h3) return;
+    const text = h3.innerText.trim();
+    const match = text.match(/^(.*?)\s*\((\d{4})\)\s*$/);
+    if (match) {
+      watched.add(norm(match[1]) + '|' + match[2]);
+    }
+  });
+  return watched;
+}
+
+function renderList(listId, pctId, barId, data, watched) {
+  const ul = document.getElementById(listId);
+  const pctEl = document.getElementById(pctId);
+  const barEl = document.getElementById(barId);
+  if (!ul) return;
+  ul.innerHTML = '';
+  let count = 0;
+  data.forEach(([rank, title, year]) => {
+    const key = norm(title) + '|' + year;
+    const seen = watched.has(key);
+    if (seen) count++;
+    const li = document.createElement('li');
+    li.className = seen ? 'watched' : '';
+    li.innerHTML = `<span class="rank">#${rank}</span><span class="check">${seen ? '✓' : '·'}</span><span>${title} <span style="color:#555;font-size:0.75rem">(${year})</span></span>`;
+    ul.appendChild(li);
+  });
+  const pct = ((count / data.length) * 100).toFixed(1);
+  pctEl.textContent = `${count}/${data.length} · ${pct}%`;
+  barEl.style.width = pct + '%';
+}
+
+function updateListTrackers() {
+  const watched = buildWatchedSet();
+  renderList('imdbList','imdbPct','imdbBar', imdbTop250, watched);
+  renderList('afiList','afiPct','afiBar', afiTop100, watched);
+  renderList('lbList','lbPct','lbBar', lbTop250, watched);
+}
+
+// Run on load and hook into existing filter/search
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(updateListTrackers, 300);
+});
+</script>
+
 <div class="filters">
   
   <input type="text" placeholder="🔍 Search..." oninput="searchMovies(this.value)">
