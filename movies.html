@@ -47,9 +47,9 @@
     </div>
   </div>
 
-  <div class="chart-box" style="display:flex; flex-direction:column;">
-    <div style="overflow-y:auto; max-height:320px; padding-right:4px;">
-      <div id="directorAvgWrap">
+  <div class="chart-box">
+    <div style="overflow-y:auto; overflow-x:hidden; max-height:320px;">
+      <div id="directorAvgWrap" style="position:relative; width:100%;">
         <canvas id="directorAvgChart"></canvas>
       </div>
     </div>
@@ -1565,11 +1565,12 @@ DNF
             return "#c62828";
         });
 
-        // Size canvas to fit all directors (36px per bar + 40px for title)
+        // Size canvas height to fit all directors without stretching width
         const dirCanvas = document.getElementById('directorAvgChart');
         const dirWrap = document.getElementById('directorAvgWrap');
         const dirHeight = Math.max(200, dirAvgFinal.length * 36 + 40);
         dirWrap.style.height = dirHeight + 'px';
+        dirCanvas.style.width = '100%';
         dirCanvas.style.height = dirHeight + 'px';
 
         window.directorAvgChart = new Chart(dirCanvas, {
